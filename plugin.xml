@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="BugDoctor"
+            id="ca.usask.cs.srlab.bugdoctor">
+      </category>
+      <view
+            name="BugDoctor"
+            icon="icons/bugdoctor.png"
+            category="ca.usask.cs.srlab.bugdoctor"
+            class="ca.usask.cs.srlab.bugdoctor.views.BugDoctorDashboardView"
+            id="ca.usask.cs.srlab.bugdoctor.views.BugDoctorDashboardView">
+      </view>
+      <view
+            name="BugDoctor Code Examples"
+            icon="icons/bugdoctor.png"
+            category="ca.usask.cs.srlab.bugdoctor"
+            class="ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView"
+            id="ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView">
+      </view>
+      
+   </extension>
+    <extension point="org.eclipse.ui.commands">
+         <category
+               id="ca.usask.cs.srlab.bugdoctor.category"
+               description="This is a category for command"
+               name="commandcategory">
+         </category>
+         <command
+               categoryId="ca.usask.cs.srlab.bugdoctor.category"
+               defaultHandler="ca.usask.cs.srlab.bugdoctor.handlers.BugDoctorHandler"
+               id="ca.usask.cs.srlab.bugdoctor.BugDoctor"
+               name="Get Search Query">
+         </command>
+         <command
+         		categoryId="ca.usask.cs.srlab.bugdoctor.category"
+         		defaultHandler="ca.usask.cs.srlab.bugdoctor.handlers.ShowBugDoctorHandler"
+         		id="ca.usask.cs.srlab.bugdoctor.ShowBugDoctor"
+         		name="Enable BugDoctor">
+         </command>
+          
+   </extension>
+   <extension point="org.eclipse.ui.menus">
+         <menuContribution   
+               allPopups="false"
+               locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+               <menu label="BugDoctor" icon="icons/rack.png" id="ca.usask.cs.srlab.bugdoctor.popupmenu">
+               <command commandId="ca.usask.cs.srlab.bugdoctor.ShowBugDoctor"
+                     id="ca.usask.cs.srlab.rack.ShowBugDoctorMenu"
+                     label="Enable BugDoctor"
+                     icon="icons/enablesc16.png"
+                     style="push">
+               </command>
+               <command
+                     commandId="ca.usask.cs.srlab.bugdoctor.BugDoctor"
+                     id="ca.usask.cs.srlab.bugdoctor.BugDoctorMenu"
+                     label="Get Query Keywords"
+                     icon="icons/bugdoctor.png"
+                     style="push">
+               </command>
+            </menu>
+         </menuContribution>
+         <menuContribution 
+         locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+               <menu label="BugDoctor" id="ca.usask.cs.srlab.bugdoctor.mainmenu">
+               <command commandId="ca.usask.cs.srlab.bugdoctor.ShowBugDoctor"
+                     id="ca.usask.cs.srlab.bugdoctor.ShowBugDoctorMenu"
+                     label="Enable BugDoctor"
+                     icon="icons/enablesc16.png"
+                     style="push">
+               </command>
+               </menu>
+         </menuContribution> 
+   </extension>
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            class="ca.usask.cs.srlab.bugdoctor.handlers.BugDoctorHandler"
+            commandId="ca.usask.cs.srlab.bugdoctor.BugDoctor">
+      </handler>
+      <handler
+            class="ca.usask.cs.srlab.bugdoctor.handlers.ShowBugDoctorHandler"
+            commandId="ca.usask.cs.srlab.bugdoctor.ShowBugDoctor">
+      </handler>
+     
+     </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.TaskList"
+               relationship="right"
+               id="ca.usask.cs.srlab.rack.views.BugDoctorDashboardView">
+         </view>
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.TaskList"
+               relationship="right"
+               id="ca.usask.cs.srlab.rack.views.BugDoctorExampleView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+</plugin>

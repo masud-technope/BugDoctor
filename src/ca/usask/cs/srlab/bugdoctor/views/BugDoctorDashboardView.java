@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.ParseException;
@@ -57,23 +56,19 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import ca.usask.cs.srlab.rack.handlers.ViewContentProvider;
-import ca.usask.cs.srlab.rack.handlers.ViewContentProviderEx;
+import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProvider;
+import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProviderEx;
 import style.JavaLineStyler;
 import utility.MiscUtility;
-import core.CodeDisplayManager;
-import core.CodeMethod;
-import core.GitHubCodeSearchManager;
-import core.MyClient;
-import core.Result;
-import core.SearchEventManager;
-import core.StaticData;
+import bugdoctor.core.CodeMethod;
+import bugdoctor.core.Result;
+import bugdoctor.core.StaticData;
 
-public class STRICTDashboardView extends ViewPart {
+public class BugDoctorDashboardView extends ViewPart {
 
 	// public TableViewer viewer;
 	public CheckboxTableViewer viewer;
-	public static final String ID = "ca.usask.cs.srlab.bugdoctor.views.STRICTDashboardView";
+	public static final String ID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorDashboardView";
 	public Text input = null;
 	GridLayout gridLayout = null;
 	Button associateContext;
@@ -106,7 +101,7 @@ public class STRICTDashboardView extends ViewPart {
 	// collected results
 	ArrayList<CodeMethod> collectedResults;
 
-	public RACKDashboardView() {
+	public BugDoctorDashboardView() {
 		// default handler
 	}
 
@@ -149,8 +144,8 @@ public class STRICTDashboardView extends ViewPart {
 		gdata4.horizontalAlignment = SWT.BEGINNING;
 
 		Button rackButton = new Button(composite, SWT.PUSH);
-		rackButton.setText("Get Relevant APIs");
-		rackButton.setToolTipText("Get Relevant APIs using RACK");
+		rackButton.setText("Get Search Keywords");
+		rackButton.setToolTipText("Get Search Keywords");
 		// rackButton.setFont(new Font(parent.getDisplay(), "Arial",
 		// 10,SWT.BOLD));
 		rackButton.setFont(font1);
@@ -166,9 +161,9 @@ public class STRICTDashboardView extends ViewPart {
 						@Override
 						public void run() {
 							// TODO Auto-generated method stub
-							SearchEventManager searchManager = new SearchEventManager(
+							/*SearchEventManager searchManager = new SearchEventManager(
 									searchQuery);
-							searchManager.performSearch();
+							searchManager.performSearch(); */
 						}
 					});
 				}
@@ -198,7 +193,7 @@ public class STRICTDashboardView extends ViewPart {
 	}
 
 	protected Image getRelevantAPIImage() {
-		return ImageDescriptor.createFromFile(RACKDashboardView.class,
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class,
 				"rack4.png").createImage();
 	}
 
@@ -279,7 +274,7 @@ public class STRICTDashboardView extends ViewPart {
 		cmdPanel.setLayoutData(gridData3);
 
 		final Button searchButton = new Button(cmdPanel, SWT.PUSH);
-		searchButton.setText("Search Code Examples");
+		searchButton.setText("Show Buggy Code");
 		searchButton.setSize(150, 25);
 		searchButton.setFont(font1);
 		searchButton.setImage(get_search_image());
@@ -296,21 +291,7 @@ public class STRICTDashboardView extends ViewPart {
 							long start = System.currentTimeMillis();
 							// TODO Auto-generated method stub
 							input.setText(codeSearchQuery);
-							GitHubCodeSearchManager codesearcher = new GitHubCodeSearchManager(
-									codeSearchQuery);
-							collectedResults = codesearcher
-									.recommendCodeExamples();
-							CodeMethod topMethod = collectedResults.get(0);
-							// CodeDisplayManager manager = new
-							// CodeDisplayManager(topMethod.methodBody);
-							// manager.displayCodeInEditor();
-							codeViewer.setText(topMethod.methodBody);
-							// selectHighlightCodeViewer();
-							// transferring focus
-							// codeViewer.setFocus();
-							long end = System.currentTimeMillis();
-							System.out.println("Time needed:" + (end - start)
-									/ 1000 + " s");
+							
 						}
 					});
 				}
@@ -323,7 +304,7 @@ public class STRICTDashboardView extends ViewPart {
 		});
 
 		final Button searchButtonTopK = new Button(cmdPanel, SWT.PUSH);
-		searchButtonTopK.setText("Show Top-K Examples");
+		searchButtonTopK.setText("Show Top-K Entities");
 		searchButtonTopK.setSize(150, 25);
 		searchButtonTopK.setImage(get_search_image());
 		searchButtonTopK.setFont(font1);
@@ -348,13 +329,7 @@ public class STRICTDashboardView extends ViewPart {
 							PlatformUI.getWorkbench()
 									.getActiveWorkbenchWindow().getActivePage()
 									.showView(viewID);
-							IViewPart vpart = page.findView(viewID);
-							RACKExampleView myview = (RACKExampleView) vpart;
-							// System.out.println(myview.viewer.toString());
-							ViewContentProviderEx viewContentProviderEx = new ViewContentProviderEx(
-									collectedResults);
-							myview.viewer
-									.setContentProvider(viewContentProviderEx);
+							
 
 						} catch (Exception exc) {
 							// handle the exception
@@ -584,17 +559,16 @@ public class STRICTDashboardView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
-				if (remoteButton.getSelection()) {
-					MyClient.useRemote = true;
-				} else {
-					MyClient.useRemote = false;
-				}
+				
 			}
 
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
+				
 			}
+
+			
 		});
 
 		// associateContext=new Button(composite2, SWT.CHECK);
@@ -623,9 +597,7 @@ public class STRICTDashboardView extends ViewPart {
 								.getActiveWorkbenchWindow().getActivePage()
 								.showView(viewID);
 						IViewPart vpart = page.findView(viewID);
-						RACKExampleView myview = (RACKExampleView) vpart;
-						myview.viewer.setContentProvider(new ViewContentProvider());
-						myview.codeViewer.setText("");
+						
 						
 					} catch (Exception exc3) {
 						// handle the exception
@@ -636,7 +608,9 @@ public class STRICTDashboardView extends ViewPart {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
+				
 			}
+
 		});
 	}
 
@@ -657,7 +631,7 @@ public class STRICTDashboardView extends ViewPart {
 
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem()
-				.setHelp(viewer.getControl(), "ca.usask.cs.srlab.rack.viewer");
+				.setHelp(viewer.getControl(), "ca.usask.cs.srlab.bugdoctor.viewer");
 	}
 
 	class ViewLabelProvider extends LabelProvider implements
