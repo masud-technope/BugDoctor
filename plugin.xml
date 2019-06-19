@@ -110,4 +110,12 @@
             file="contexts.xml">
       </contexts>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="ca.usask.cs.srlab.bugdoctor.WorkbenchPreferencePage"
+            id="ca.usask.cs.srlab.bugdoctor.preferencePage"
+            name="BugDoctor">
+      </page>
+   </extension>
 </plugin>

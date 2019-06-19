@@ -7,4 +7,5 @@ public class StaticData {
 	public static String Surf_Data_Base="C:/MyWorks/Thesis Works/IDE_Based_Search_Recommendation/SurfExampleDataset";
 	//public static String Surf_Data_Base="C:/My MSc/ThesisWorks/IDE_Based_Search_Recommendation/SurfExampleDataset";
 	public static String Lucene_Data_Base="C:/MyWorks/Thesis Works/IDE_Based_Search_Recommendation/LuceneDataset";
+	public static String HOME_DIR="C:\\MyWorks\\PhDThesisTool";
 }

@@ -152,9 +152,9 @@ public class BugDoctorExampleView extends ViewPart {
 		// adding the paint item
 		setItemHeight(table);
 		setPaintItem(table);
-		// setKeyEventItems(table);
+	    //setKeyEventItems(table);
 		// setting relative weights
-		// divider.setWeights(new int[] { 2, 1, 2 });
+		divider.setWeights(new int[] { 2, 1, 2 });
 	}
 
 	protected void setItemHeight(Table table) {

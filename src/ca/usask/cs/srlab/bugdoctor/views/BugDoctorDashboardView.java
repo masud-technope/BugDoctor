@@ -62,6 +62,8 @@ import org.eclipse.ui.part.ViewPart;
 import ca.usask.cs.srlab.bugdoctor.Activator;
 import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProvider;
 import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProviderEx;
+import qd.core.EntropyCalc;
+import strict.query.SearchTermProvider;
 import style.JavaLineStyler;
 import utility.ContentLoader;
 import utility.MiscUtility;
@@ -75,6 +77,7 @@ public class BugDoctorDashboardView extends ViewPart {
 	public CheckboxTableViewer viewer;
 	public static final String ID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorDashboardView";
 	public Text input = null;
+	Label bugIDLabel = null;
 	GridLayout gridLayout = null;
 	Button associateContext;
 	StyledText codeViewer = null;
@@ -124,7 +127,7 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addBugReportMetaData(Composite parent) {
 		// adding bug report meta data
 		final Composite composite = new Composite(parent, SWT.NONE);
-		GridLayout brMetaDataGridLayout=makeGridLayout(5);
+		GridLayout brMetaDataGridLayout = makeGridLayout(5);
 		composite.setLayout(brMetaDataGridLayout);
 
 		GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, false);
@@ -147,29 +150,25 @@ public class BugDoctorDashboardView extends ViewPart {
 
 		Label keywordlabel = new Label(composite, SWT.NONE);
 		keywordlabel.setText("Project:");
-		keywordlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
-				SWT.BOLD));
+		keywordlabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
 		keywordlabel.setLayoutData(gdata2);
 
 		Label projectlabel = new Label(composite, SWT.NONE);
 		projectlabel.setText(" " + Activator.SELECTED_REPOSITORY);
-		projectlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
-				SWT.BOLD));
+		projectlabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
 		projectlabel.setForeground(new Color(null, 0, 255, 0));
 		projectlabel.setLayoutData(gdata3);
 
 		Label _bugIDlabel = new Label(composite, SWT.NONE);
 		_bugIDlabel.setText("BugID:");
-		_bugIDlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
-				SWT.BOLD));
+		_bugIDlabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
 		_bugIDlabel.setLayoutData(gdata2);
 
-		Label bugIDlabel = new Label(composite, SWT.NONE);
-		bugIDlabel.setText("None");
-		bugIDlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
-				SWT.BOLD));
-		bugIDlabel.setForeground(new Color(null, 0, 255, 0));
-		bugIDlabel.setLayoutData(gdata3);
+		bugIDLabel = new Label(composite, SWT.NONE);
+		bugIDLabel.setText("None");
+		bugIDLabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
+		bugIDLabel.setForeground(new Color(null, 0, 255, 0));
+		bugIDLabel.setLayoutData(gdata3);
 
 		GridData gdata4 = new GridData();
 		gdata4.heightHint = 30;
@@ -187,13 +186,12 @@ public class BugDoctorDashboardView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				// choose bug report
-				FileDialog fileDialog = new FileDialog(composite.getShell(),
-						SWT.NONE);
+				FileDialog fileDialog = new FileDialog(composite.getShell(), SWT.NONE);
 				final String fileName = fileDialog.open();
 				OPENED_BUG_REPORT = fileName;
 				File bugReportFile = new File(fileName);
 				String bugID = bugReportFile.getName().split("\\.")[0];
-				bugIDlabel.setText(bugID);
+				bugIDLabel.setText(bugID);
 				// System.out.println(fileName);
 				// showing the bug report
 				String bugReportText = ContentLoader.loadFileContent(fileName);
@@ -223,7 +221,7 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addSearchPanel(Composite parent) {
 		// adding the search panel
 		final Composite composite = new Composite(parent, SWT.NONE);
-		GridLayout searchGridLayout=makeGridLayout(3);
+		GridLayout searchGridLayout = makeGridLayout(3);
 		composite.setLayout(searchGridLayout);
 
 		GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, false);
@@ -239,8 +237,7 @@ public class BugDoctorDashboardView extends ViewPart {
 
 		Label keywordlabel = new Label(composite, SWT.NONE);
 		keywordlabel.setText("Keywords: ");
-		keywordlabel.setFont(new Font(composite.getDisplay(), "Arial", 11,
-				SWT.BOLD));
+		keywordlabel.setFont(new Font(composite.getDisplay(), "Arial", 11, SWT.BOLD));
 
 		input = new Text(composite, SWT.SINGLE | SWT.BORDER);
 		input.setEditable(true);
@@ -255,10 +252,10 @@ public class BugDoctorDashboardView extends ViewPart {
 		gdata4.horizontalAlignment = SWT.BEGINNING;
 
 		Button rackButton = new Button(composite, SWT.PUSH);
-		rackButton.setText("Find Buggy Code");
-		rackButton.setToolTipText("Click to find out the buggy code");
+		rackButton.setText("Search Buggy Code");
+		rackButton.setToolTipText("Click to locate the buggy code");
 		rackButton.setFont(font1);
-		rackButton.setImage(getRelevantAPIImage());
+		rackButton.setImage(getBugSearchImage());
 		rackButton.setLayoutData(gdata4);
 		rackButton.addSelectionListener(new SelectionListener() {
 			@Override
@@ -271,8 +268,7 @@ public class BugDoctorDashboardView extends ViewPart {
 						public void run() {
 							// TODO Auto-generated method stub
 							/*
-							 * SearchEventManager searchManager = new
-							 * SearchEventManager( searchQuery);
+							 * SearchEventManager searchManager = new SearchEventManager( searchQuery);
 							 * searchManager.performSearch();
 							 */
 						}
@@ -304,14 +300,26 @@ public class BugDoctorDashboardView extends ViewPart {
 	}
 
 	protected Image getRelevantAPIImage() {
-		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class,
-				"bugdoctor.png").createImage();
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "bugdoctor.png").createImage();
 	}
 
 	protected Image get_search_image() {
-		return ImageDescriptor.createFromFile(ViewLabelProvider.class,
-				"searchbt16.gif").createImage();
+		return ImageDescriptor.createFromFile(ViewLabelProvider.class, "searchbt16.gif").createImage();
 	}
+	
+	protected Image getSuggestionImage() {
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "suggestion.png").createImage();
+	}
+	
+	protected Image getQueryImage() {
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "search-query.png").createImage();
+	}
+	
+	protected Image getBugSearchImage() {
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "bug-search.png").createImage();
+	}
+	
+	
 
 	protected String getCodeSearchQuery() {
 		ArrayList<String> apiNames = new ArrayList<>();
@@ -329,36 +337,118 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addKeywordSuggestionPanel(SashForm divider) {
 		// query suggestion panel
 
-		final Composite keywordSuggestionPanel = new Composite(divider,
-				SWT.FILL);
+		final Composite keywordSuggestionPanel = new Composite(divider, SWT.NONE);
 		GridLayout kwGridLayout = makeGridLayout(1);
 		keywordSuggestionPanel.setLayout(kwGridLayout);
-		GridData kwGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
-				false);
+		GridData kwGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		keywordSuggestionPanel.setLayoutData(kwGridLayoutData);
-		
 
 		// adding the keyword suggestion panel
-		final Button kwSuggestButton = new Button(keywordSuggestionPanel,
-				SWT.PUSH);
+		GridData kwSearchLayoutData = new GridData(SWT.CENTER, SWT.TOP, true, false);
+		final Button kwSuggestButton = new Button(keywordSuggestionPanel, SWT.PUSH);
 		kwSuggestButton.setText("Suggest Keywords");
-		kwSuggestButton.setSize(150, 25);
+		kwSuggestButton.setSize(250, 25);
 		kwSuggestButton.setFont(font1);
+		kwSuggestButton.setImage(getSuggestionImage());
+		kwSuggestButton.setLayoutData(kwSearchLayoutData);
+		kwSuggestButton.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+
+						/*String reporName = "eclipse.jdt.debug";
+						int bugID = Integer.parseInt(bugIDLabel.getText().trim());
+						String bugReport = bugReportViewer.getText();
+						String title = bugReport.split("\n")[0].trim();
+						EntropyCalc entCalc = new EntropyCalc("eclipse.jdt.debug",
+								StaticData.HOME_DIR + "/lucene/index-method/eclipse.jdt.debug",
+								StaticData.HOME_DIR + "/corpus/norm-method/eclipse.jdt.debug");
+
+						strict.ca.usask.cs.srlab.strict.config.StaticData.STOPWORD_DIR = StaticData.HOME_DIR
+								+ "/BugDoctor/pp-data";
+						strict.ca.usask.cs.srlab.strict.config.StaticData.SAMURAI_DIR = StaticData.HOME_DIR
+								+ "/BugDoctor/samurai-data";
+
+						SearchTermProvider stProvider = new SearchTermProvider(reporName, bugID, title, bugReport);
+						String bestQuery = stProvider.deliverBestQuery(entCalc);
+						System.out.println(bestQuery); */
+						String bestQuery="5653 view checked click debugging Add Debugger post catch exception default Bug DCR Debug ger uncaught";
+						// now populate these keywords
+						ArrayList<String> keywords = qd.utility.MiscUtility.str2List(bestQuery);
+						ArrayList<Result> suggestedKeywords = new ArrayList<Result>();
+						for (int index = 1; index < keywords.size(); index++) {
+							String keyword = keywords.get(index);
+							double relevance = 1 - (double) index / keywords.size();
+							Result rKeyword = new Result();
+							rKeyword.token = keyword;
+							rKeyword.totalScore = relevance;
+							suggestedKeywords.add(rKeyword);
+						}
+
+						populateResultsToIDE(suggestedKeywords);
+
+					}
+				});
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+			}
+		});
 
 		// showing the bug report
-		bugReportViewer = new StyledText(keywordSuggestionPanel, SWT.BORDER
-				| SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-		bugReportViewer.setFont(new Font(keywordSuggestionPanel.getDisplay(), "Arial", 10,
-				SWT.NORMAL));
+		GridData brLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		bugReportViewer = new StyledText(keywordSuggestionPanel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		bugReportViewer.setFont(new Font(keywordSuggestionPanel.getDisplay(), "Arial", 10, SWT.NORMAL));
 		bugReportViewer.setMargins(0, 0, 0, 0);
+		bugReportViewer.setLayoutData(brLayoutData);
 	}
 
 	protected void addResultTableOnly(SashForm divider) {
-		GridLayout tableGirdLayout=makeGridLayout(1); 
-		GridData resultGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
-				true);
-		viewer = CheckboxTableViewer.newCheckList(divider, SWT.CHECK
-				| SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+		
+		Composite composite=new Composite(divider, SWT.NONE);
+		GridLayout tableGirdLayout = makeGridLayout(1);
+		composite.setLayout(tableGirdLayout);
+		
+		// adding the keyword suggestion panel
+		final Button makeQueryButton = new Button(composite, SWT.PUSH);
+		GridData makeQueryLayoutData = new GridData(SWT.CENTER, SWT.TOP, true, false);
+		makeQueryButton.setText("Make Query");
+		makeQueryButton.setSize(250, 25);
+		makeQueryButton.setFont(font1);
+		makeQueryButton.setImage(getQueryImage());
+		makeQueryButton.setLayoutData(makeQueryLayoutData);
+		makeQueryButton.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				final TableItem [] items = viewer.getTable().getItems();
+				ArrayList<String> keywordList=new ArrayList<>();
+			    for (int i = 0; i < items.length; ++i) {
+			      if (items[i].getChecked()) {
+			    	  keywordList.add(items[i].getText());
+			      }
+			    }
+			    //now update the query box
+			    input.setText(MiscUtility.list2Str(keywordList));
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+
+		GridData resultGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		viewer = CheckboxTableViewer.newCheckList(composite, SWT.CHECK | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		final Table table = viewer.getTable();
 		table.setLayout(tableGirdLayout);
 		table.setLayoutData(resultGridLayoutData);
@@ -386,14 +476,23 @@ public class BugDoctorDashboardView extends ViewPart {
 		setKeyEventItems(table);
 	}
 
+	protected void populateResultsToIDE(ArrayList<Result> results) {
+		// code for populating results to IDE
+		try {
+			ViewContentProvider viewContentProvider = new ViewContentProvider(results);
+			this.viewer.setContentProvider(viewContentProvider);
+		} catch (Exception exc) {
+			// handle the exception
+		}
+	}
+
 	protected void addCommandPanel(SashForm divider) {
 		// now add the search button
 		final Composite cmdPanel = new Composite(divider, SWT.NONE);
 		GridLayout cmdGridLayout = makeGridLayout(1);
 		cmdPanel.setLayout(cmdGridLayout);
 
-		GridData cmdGridLayoutData = new GridData(SWT.CENTER, SWT.CENTER, true,
-				false);
+		GridData cmdGridLayoutData = new GridData(SWT.CENTER, SWT.CENTER, true, false);
 		cmdPanel.setLayoutData(cmdGridLayoutData);
 
 		final Button searchButton = new Button(cmdPanel, SWT.PUSH);
@@ -443,15 +542,11 @@ public class BugDoctorDashboardView extends ViewPart {
 						// TODO Auto-generated method stub
 						try {
 							// ArrayList<CodeMethod> results = collectedResults;
-							System.out.println("Cached results:"
-									+ collectedResults.size());
-							IWorkbenchPage page = (IWorkbenchPage) PlatformUI
-									.getWorkbench().getActiveWorkbenchWindow()
+							System.out.println("Cached results:" + collectedResults.size());
+							IWorkbenchPage page = (IWorkbenchPage) PlatformUI.getWorkbench().getActiveWorkbenchWindow()
 									.getActivePage();
 							String viewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView";
-							PlatformUI.getWorkbench()
-									.getActiveWorkbenchWindow().getActivePage()
-									.showView(viewID);
+							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(viewID);
 
 						} catch (Exception exc) {
 							// handle the exception
@@ -472,11 +567,9 @@ public class BugDoctorDashboardView extends ViewPart {
 
 	protected void addCodeViewer(SashForm divider) {
 		// now add the editor
-		Composite composite=new Composite(divider, SWT.NONE);
-		codeViewer = new StyledText(composite, SWT.BORDER | SWT.READ_ONLY
-				| SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-		codeViewer.setFont(new Font(composite.getDisplay(), "Courier New", 10,
-				SWT.NORMAL));
+		Composite composite = new Composite(divider, SWT.NONE);
+		codeViewer = new StyledText(composite, SWT.BORDER | SWT.READ_ONLY | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		codeViewer.setFont(new Font(composite.getDisplay(), "Courier New", 10, SWT.NORMAL));
 		codeViewer.addLineStyleListener(new JavaLineStyler());
 		codeViewer.setMargins(0, 0, 0, 0);
 	}
@@ -485,24 +578,22 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addResultTable(Composite parent) {
 		// adding the result table
 		// result panel display
-		final Composite composite3 = new Composite(parent, SWT.NONE);
+		// final Composite composite3 = new Composite(parent, SWT.NONE);
 		GridLayout resultGridLayout = makeGridLayout(4);
-		//composite3.setLayout(resultGridLayout);
+		// composite3.setLayout(resultGridLayout);
 		GridData gridData2 = new GridData(SWT.FILL, SWT.FILL, true, true);
-		composite3.setLayoutData(gridData2);
+		// composite3.setLayoutData(gridData2);
 
-		final SashForm divider = new SashForm(composite3, SWT.HORIZONTAL
-				| SWT.BORDER);
+		final SashForm divider = new SashForm(parent, SWT.HORIZONTAL | SWT.BORDER);
 		divider.setLayout(resultGridLayout);
 		divider.setLayoutData(gridData2);
-		
 
 		// now start adding the items
 		this.addKeywordSuggestionPanel(divider);
 		this.addResultTableOnly(divider);
 		this.addCommandPanel(divider);
 		this.addCodeViewer(divider);
-		
+
 		// setting relative weights
 		divider.setWeights(new int[] { 2, 2, 1, 2 });
 	}
@@ -521,8 +612,7 @@ public class BugDoctorDashboardView extends ViewPart {
 				while (m.find()) {
 					int start = m.start();
 					int length = keyword.length();
-					StyleRange range = new StyleRange(start, length, maroon,
-							null, SWT.BOLD);
+					StyleRange range = new StyleRange(start, length, maroon, null, SWT.BOLD);
 					codeViewer.setStyleRange(range);
 					// keyIndices.add(start);
 					// keyIndices.add(length);
@@ -532,18 +622,16 @@ public class BugDoctorDashboardView extends ViewPart {
 
 			/*
 			 * StyleRange style1 = new StyleRange(); style1.font = codeFont;
-			 * style1.background = Display.getDefault().getSystemColor(
-			 * SWT.COLOR_YELLOW); style1.foreground =
-			 * Display.getDefault().getSystemColor( SWT.COLOR_MAGENTA);
+			 * style1.background = Display.getDefault().getSystemColor( SWT.COLOR_YELLOW);
+			 * style1.foreground = Display.getDefault().getSystemColor( SWT.COLOR_MAGENTA);
 			 * StyleRange[] styles = new StyleRange[] {style1};
 			 * 
 			 * //System.out.println("Indices found:"+keyIndices.size() );
 			 * 
 			 * int[] ranges = new int[keyIndices.size()];
 			 * 
-			 * for (int index = 0; index < ranges.length; index++) {
-			 * ranges[index] = keyIndices.get(index); }
-			 * codeViewer.setStyleRanges(ranges, styles);
+			 * for (int index = 0; index < ranges.length; index++) { ranges[index] =
+			 * keyIndices.get(index); } codeViewer.setStyleRanges(ranges, styles);
 			 */
 
 		} catch (Exception e) {
@@ -610,8 +698,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			@Override
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
-				System.out
-						.println("Selected:" + event.index + " " + event.item);
+				System.out.println("Selected:" + event.index + " " + event.item);
 			}
 		});
 	}
@@ -662,10 +749,8 @@ public class BugDoctorDashboardView extends ViewPart {
 					int height = 25;
 					// gc.fillRectangle(event.x, event.y + 10, width,
 					// height);
-					gc.fillGradientRectangle(event.x, event.y, width, height,
-							false);
-					Rectangle rect2 = new Rectangle(event.x, event.y,
-							width - 1, height - 1);
+					gc.fillGradientRectangle(event.x, event.y, width, height, false);
+					Rectangle rect2 = new Rectangle(event.x, event.y, width - 1, height - 1);
 					gc.drawRectangle(rect2);
 					gc.setForeground(new Color(null, 255, 255, 255));
 					String text = percent + "%";
@@ -706,15 +791,6 @@ public class BugDoctorDashboardView extends ViewPart {
 						viewer.setContentProvider(new ViewContentProvider());
 						codeViewer.setText("");
 						bugReportViewer.setText("");
-						// clear the example view as well.
-						IWorkbenchPage page = (IWorkbenchPage) PlatformUI
-								.getWorkbench().getActiveWorkbenchWindow()
-								.getActivePage();
-						String viewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView";
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-								.getActivePage().showView(viewID);
-						IViewPart vpart = page.findView(viewID);
-
 					} catch (Exception exc3) {
 						// handle the exception
 					}
@@ -745,15 +821,11 @@ public class BugDoctorDashboardView extends ViewPart {
 		addResultTable(parent);
 
 		// Create the help context id for the viewer's control
-		PlatformUI
-				.getWorkbench()
-				.getHelpSystem()
-				.setHelp(viewer.getControl(),
-						"ca.usask.cs.srlab.bugdoctor.viewer");
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "ca.usask.cs.srlab.bugdoctor.viewer");
 	}
+	
 
-	class ViewLabelProvider extends LabelProvider implements
-			ITableLabelProvider {
+	class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 		public String getColumnText(Object obj, int index) {
 			Result myresult = (Result) obj;
 			switch (index) {
@@ -762,18 +834,6 @@ public class BugDoctorDashboardView extends ViewPart {
 					return myresult.token;
 				return "";
 			case 1:
-				if (myresult.KACScore > 0)
-					return myresult.KACScore * 100 + "";
-				return "0";
-			case 2:
-				if (myresult.KKCScore > 0)
-					return myresult.KKCScore * 100 + "";
-				return "0";
-			case 3:
-				if (myresult.CoocScore > 0)
-					return myresult.CoocScore * 100 + "";
-				return "0";
-			case 4:
 				if (myresult.totalScore > 0)
 					return String.format("%.2f", myresult.totalScore * 100);
 				return "0";
@@ -792,9 +852,10 @@ public class BugDoctorDashboardView extends ViewPart {
 		}
 
 		public Image getImage(Object obj) {
-			return ImageDescriptor.createFromFile(ViewLabelProvider.class,
-					"code.png").createImage();
+			return ImageDescriptor.createFromFile(ViewLabelProvider.class, "code.png").createImage();
 		}
+		
+		
 	}
 
 	@Override

@@ -36,6 +36,10 @@ public class ShowBugDoctorHandler extends AbstractHandler {
 					// System.out.println(project.getName());
 					Activator.SELECTED_REPOSITORY = project.getName();
 					System.out.println(Activator.SELECTED_REPOSITORY);
+					
+					
+					
+					
 				}
 			}
 
