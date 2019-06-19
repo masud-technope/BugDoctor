@@ -47,20 +47,20 @@
          <menuContribution   
                allPopups="false"
                locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-               <menu label="BugDoctor" icon="icons/rack.png" id="ca.usask.cs.srlab.bugdoctor.popupmenu">
+               <menu label="BugDoctor" icon="icons/bugdoctor.png" id="ca.usask.cs.srlab.bugdoctor.popupmenu">
                <command commandId="ca.usask.cs.srlab.bugdoctor.ShowBugDoctor"
                      id="ca.usask.cs.srlab.rack.ShowBugDoctorMenu"
                      label="Enable BugDoctor"
                      icon="icons/enablesc16.png"
                      style="push">
                </command>
-               <command
+               <!--<command
                      commandId="ca.usask.cs.srlab.bugdoctor.BugDoctor"
                      id="ca.usask.cs.srlab.bugdoctor.BugDoctorMenu"
                      label="Get Query Keywords"
                      icon="icons/bugdoctor.png"
                      style="push">
-               </command>
+               </command>-->
             </menu>
          </menuContribution>
          <menuContribution 

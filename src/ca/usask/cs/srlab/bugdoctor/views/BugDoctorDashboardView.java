@@ -1,9 +1,11 @@
 package ca.usask.cs.srlab.bugdoctor.views;
 
+import java.io.File;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.ParseException;
@@ -43,6 +45,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
@@ -56,9 +59,11 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
+import ca.usask.cs.srlab.bugdoctor.Activator;
 import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProvider;
 import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProviderEx;
 import style.JavaLineStyler;
+import utility.ContentLoader;
 import utility.MiscUtility;
 import bugdoctor.core.CodeMethod;
 import bugdoctor.core.Result;
@@ -73,11 +78,13 @@ public class BugDoctorDashboardView extends ViewPart {
 	GridLayout gridLayout = null;
 	Button associateContext;
 	StyledText codeViewer = null;
+	StyledText bugReportViewer = null;
 	SourceViewer sourceViewer = null;
 	ArrayList<String> suggestions = new ArrayList<>();
 	ContentProposalAdapter adapter = null;
 	ArrayList<String> queryTokenList = new ArrayList<>();
 	final int TEXT_MARGIN = 3;
+	public static String OPENED_BUG_REPORT;
 
 	final Display currDisplay = Display.getCurrent();
 	final TextLayout textLayout = new TextLayout(currDisplay);
@@ -105,15 +112,119 @@ public class BugDoctorDashboardView extends ViewPart {
 		// default handler
 	}
 
-	protected void addSearchPanel(Composite parent) {
-		// adding the search panel
-		final Composite composite = new Composite(parent, SWT.NONE);
-		gridLayout = new GridLayout(3, false);
+	protected GridLayout makeGridLayout(int numberOfColumns) {
+		GridLayout gridLayout = new GridLayout(numberOfColumns, false);
 		gridLayout.marginWidth = 0;
 		gridLayout.marginHeight = 10;
 		gridLayout.verticalSpacing = 5;
 		gridLayout.horizontalSpacing = 5;
-		composite.setLayout(gridLayout);
+		return gridLayout;
+	}
+
+	protected void addBugReportMetaData(Composite parent) {
+		// adding bug report meta data
+		final Composite composite = new Composite(parent, SWT.NONE);
+		GridLayout brMetaDataGridLayout=makeGridLayout(5);
+		composite.setLayout(brMetaDataGridLayout);
+
+		GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, false);
+		composite.setLayoutData(gridData);
+
+		// gridData = new GridData(SWT.DEFAULT, SWT.FILL, false, false);
+		GridData gdata2 = new GridData();
+		gdata2.heightHint = 25;
+		gdata2.widthHint = 80;
+		gdata2.horizontalAlignment = SWT.BEGINNING;
+		gdata2.verticalAlignment = SWT.CENTER;
+		gdata2.grabExcessHorizontalSpace = false;
+
+		GridData gdata3 = new GridData();
+		gdata3.heightHint = 25;
+		gdata3.widthHint = 150;
+		gdata3.horizontalAlignment = SWT.BEGINNING;
+		gdata3.verticalAlignment = SWT.CENTER;
+		gdata3.grabExcessHorizontalSpace = false;
+
+		Label keywordlabel = new Label(composite, SWT.NONE);
+		keywordlabel.setText("Project:");
+		keywordlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
+				SWT.BOLD));
+		keywordlabel.setLayoutData(gdata2);
+
+		Label projectlabel = new Label(composite, SWT.NONE);
+		projectlabel.setText(" " + Activator.SELECTED_REPOSITORY);
+		projectlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
+				SWT.BOLD));
+		projectlabel.setForeground(new Color(null, 0, 255, 0));
+		projectlabel.setLayoutData(gdata3);
+
+		Label _bugIDlabel = new Label(composite, SWT.NONE);
+		_bugIDlabel.setText("BugID:");
+		_bugIDlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
+				SWT.BOLD));
+		_bugIDlabel.setLayoutData(gdata2);
+
+		Label bugIDlabel = new Label(composite, SWT.NONE);
+		bugIDlabel.setText("None");
+		bugIDlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
+				SWT.BOLD));
+		bugIDlabel.setForeground(new Color(null, 0, 255, 0));
+		bugIDlabel.setLayoutData(gdata3);
+
+		GridData gdata4 = new GridData();
+		gdata4.heightHint = 30;
+		gdata4.widthHint = 200;
+		gdata4.horizontalAlignment = SWT.BEGINNING;
+
+		Button openButton = new Button(composite, SWT.PUSH);
+		openButton.setText("Open a Bug Report");
+		openButton.setToolTipText("Open a new bug report");
+		openButton.setFont(font1);
+		openButton.setImage(getRelevantAPIImage());
+		openButton.setLayoutData(gdata4);
+		openButton.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				// choose bug report
+				FileDialog fileDialog = new FileDialog(composite.getShell(),
+						SWT.NONE);
+				final String fileName = fileDialog.open();
+				OPENED_BUG_REPORT = fileName;
+				File bugReportFile = new File(fileName);
+				String bugID = bugReportFile.getName().split("\\.")[0];
+				bugIDlabel.setText(bugID);
+				// System.out.println(fileName);
+				// showing the bug report
+				String bugReportText = ContentLoader.loadFileContent(fileName);
+				String[] reportLines = bugReportText.split("\n");
+				String title = reportLines[0];
+				String description = new String();
+				for (int i = 1; i < reportLines.length; i++) {
+					description += reportLines[i] + "\n";
+				}
+				bugReportViewer.setText(title + "\n\n" + description);
+
+				StyleRange style1 = new StyleRange();
+				style1.start = 0;
+				style1.length = title.length();
+				style1.fontStyle = SWT.BOLD;
+				bugReportViewer.setStyleRange(style1);
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+			}
+		});
+
+	}
+
+	protected void addSearchPanel(Composite parent) {
+		// adding the search panel
+		final Composite composite = new Composite(parent, SWT.NONE);
+		GridLayout searchGridLayout=makeGridLayout(3);
+		composite.setLayout(searchGridLayout);
 
 		GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, false);
 		composite.setLayoutData(gridData);
@@ -133,21 +244,19 @@ public class BugDoctorDashboardView extends ViewPart {
 
 		input = new Text(composite, SWT.SINGLE | SWT.BORDER);
 		input.setEditable(true);
-		input.setToolTipText("Enter your query for code search");
+		input.setToolTipText("Enter your query to find out the buggy code");
 		Font myfont = new Font(composite.getDisplay(), "Arial", 11, SWT.NORMAL);
 		input.setFont(myfont);
 		input.setLayoutData(gdata2);
 
 		GridData gdata4 = new GridData();
 		gdata4.heightHint = 30;
-		gdata4.widthHint = 180;
+		gdata4.widthHint = 200;
 		gdata4.horizontalAlignment = SWT.BEGINNING;
 
 		Button rackButton = new Button(composite, SWT.PUSH);
-		rackButton.setText("Get Search Keywords");
-		rackButton.setToolTipText("Get Search Keywords");
-		// rackButton.setFont(new Font(parent.getDisplay(), "Arial",
-		// 10,SWT.BOLD));
+		rackButton.setText("Find Buggy Code");
+		rackButton.setToolTipText("Click to find out the buggy code");
 		rackButton.setFont(font1);
 		rackButton.setImage(getRelevantAPIImage());
 		rackButton.setLayoutData(gdata4);
@@ -161,9 +270,11 @@ public class BugDoctorDashboardView extends ViewPart {
 						@Override
 						public void run() {
 							// TODO Auto-generated method stub
-							/*SearchEventManager searchManager = new SearchEventManager(
-									searchQuery);
-							searchManager.performSearch(); */
+							/*
+							 * SearchEventManager searchManager = new
+							 * SearchEventManager( searchQuery);
+							 * searchManager.performSearch();
+							 */
 						}
 					});
 				}
@@ -194,7 +305,7 @@ public class BugDoctorDashboardView extends ViewPart {
 
 	protected Image getRelevantAPIImage() {
 		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class,
-				"rack4.png").createImage();
+				"bugdoctor.png").createImage();
 	}
 
 	protected Image get_search_image() {
@@ -215,39 +326,48 @@ public class BugDoctorDashboardView extends ViewPart {
 		return apiStr;
 	}
 
-	@SuppressWarnings("deprecation")
-	protected void addResultTable(Composite parent) {
-		// adding the result table
-		// result panel display
+	protected void addKeywordSuggestionPanel(SashForm divider) {
+		// query suggestion panel
 
-		final Composite composite3 = new Composite(parent, SWT.NONE);
-		GridLayout gridLayout2 = new GridLayout(2, false);
-		gridLayout.marginWidth = 0;
-		gridLayout.marginHeight = 0;
-		gridLayout.verticalSpacing = 3;
-		gridLayout.horizontalSpacing = 0;
-		composite3.setLayout(gridLayout2);
+		final Composite keywordSuggestionPanel = new Composite(divider,
+				SWT.FILL);
+		GridLayout kwGridLayout = makeGridLayout(1);
+		keywordSuggestionPanel.setLayout(kwGridLayout);
+		GridData kwGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
+				false);
+		keywordSuggestionPanel.setLayoutData(kwGridLayoutData);
+		
 
-		GridData gridData2 = new GridData(SWT.FILL, SWT.FILL, true, true);
-		composite3.setLayoutData(gridData2);
+		// adding the keyword suggestion panel
+		final Button kwSuggestButton = new Button(keywordSuggestionPanel,
+				SWT.PUSH);
+		kwSuggestButton.setText("Suggest Keywords");
+		kwSuggestButton.setSize(150, 25);
+		kwSuggestButton.setFont(font1);
 
-		final SashForm divider = new SashForm(composite3, SWT.HORIZONTAL
-				| SWT.BORDER);
+		// showing the bug report
+		bugReportViewer = new StyledText(keywordSuggestionPanel, SWT.BORDER
+				| SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		bugReportViewer.setFont(new Font(keywordSuggestionPanel.getDisplay(), "Arial", 10,
+				SWT.NORMAL));
+		bugReportViewer.setMargins(0, 0, 0, 0);
+	}
 
-		divider.setLayout(gridLayout2);
-		divider.setLayoutData(gridData2);
-
-		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+	protected void addResultTableOnly(SashForm divider) {
+		GridLayout tableGirdLayout=makeGridLayout(1); 
+		GridData resultGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
+				true);
 		viewer = CheckboxTableViewer.newCheckList(divider, SWT.CHECK
 				| SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		final Table table = viewer.getTable();
-		table.setLayoutData(gridData);
+		table.setLayout(tableGirdLayout);
+		table.setLayoutData(resultGridLayoutData);
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
 
-		String[] columns = { "API Class", "KAC", "KKC", "KPC", "Relevance" };
-		int[] colWidth = { 200, 100, 100, 100, 100 };
-		int[] colAlignment = { SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.LEFT };
+		String[] columns = { "Suggested Keyword", "Relevance" };
+		int[] colWidth = { 200, 200 };
+		int[] colAlignment = { SWT.LEFT, SWT.LEFT };
 		for (int i = 0; i < columns.length; i++) {
 			// stored for sorting
 			// final int columnNum = i;
@@ -260,18 +380,21 @@ public class BugDoctorDashboardView extends ViewPart {
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setInput(getViewSite());
 
+		// adding the paint item
+		setItemHeight(table);
+		setPaintItem(table);
+		setKeyEventItems(table);
+	}
+
+	protected void addCommandPanel(SashForm divider) {
 		// now add the search button
 		final Composite cmdPanel = new Composite(divider, SWT.NONE);
+		GridLayout cmdGridLayout = makeGridLayout(1);
+		cmdPanel.setLayout(cmdGridLayout);
 
-		GridLayout gridLayout3 = new GridLayout(1, false);
-		gridLayout.marginWidth = 0;
-		gridLayout.marginHeight = 0;
-		gridLayout.verticalSpacing = 5;
-		gridLayout.horizontalSpacing = 5;
-		cmdPanel.setLayout(gridLayout3);
-
-		GridData gridData3 = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-		cmdPanel.setLayoutData(gridData3);
+		GridData cmdGridLayoutData = new GridData(SWT.CENTER, SWT.CENTER, true,
+				false);
+		cmdPanel.setLayoutData(cmdGridLayoutData);
 
 		final Button searchButton = new Button(cmdPanel, SWT.PUSH);
 		searchButton.setText("Show Buggy Code");
@@ -291,7 +414,7 @@ public class BugDoctorDashboardView extends ViewPart {
 							long start = System.currentTimeMillis();
 							// TODO Auto-generated method stub
 							input.setText(codeSearchQuery);
-							
+
 						}
 					});
 				}
@@ -325,11 +448,10 @@ public class BugDoctorDashboardView extends ViewPart {
 							IWorkbenchPage page = (IWorkbenchPage) PlatformUI
 									.getWorkbench().getActiveWorkbenchWindow()
 									.getActivePage();
-							String viewID = "ca.usask.cs.srlab.rack.views.RACKExampleView";
+							String viewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView";
 							PlatformUI.getWorkbench()
 									.getActiveWorkbenchWindow().getActivePage()
 									.showView(viewID);
-							
 
 						} catch (Exception exc) {
 							// handle the exception
@@ -346,22 +468,43 @@ public class BugDoctorDashboardView extends ViewPart {
 			}
 		});
 
+	}
+
+	protected void addCodeViewer(SashForm divider) {
 		// now add the editor
-		// Composite composite4=new Composite(divider, SWT.NONE);
-		codeViewer = new StyledText(divider, SWT.BORDER | SWT.READ_ONLY
+		Composite composite=new Composite(divider, SWT.NONE);
+		codeViewer = new StyledText(composite, SWT.BORDER | SWT.READ_ONLY
 				| SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-		codeViewer.setFont(new Font(divider.getDisplay(), "Courier New", 10,
+		codeViewer.setFont(new Font(composite.getDisplay(), "Courier New", 10,
 				SWT.NORMAL));
 		codeViewer.addLineStyleListener(new JavaLineStyler());
 		codeViewer.setMargins(0, 0, 0, 0);
+	}
 
-		// adding the paint item
-		setItemHeight(table);
-		setPaintItem(table);
-		setKeyEventItems(table);
+	@SuppressWarnings("deprecation")
+	protected void addResultTable(Composite parent) {
+		// adding the result table
+		// result panel display
+		final Composite composite3 = new Composite(parent, SWT.NONE);
+		GridLayout resultGridLayout = makeGridLayout(4);
+		//composite3.setLayout(resultGridLayout);
+		GridData gridData2 = new GridData(SWT.FILL, SWT.FILL, true, true);
+		composite3.setLayoutData(gridData2);
 
+		final SashForm divider = new SashForm(composite3, SWT.HORIZONTAL
+				| SWT.BORDER);
+		divider.setLayout(resultGridLayout);
+		divider.setLayoutData(gridData2);
+		
+
+		// now start adding the items
+		this.addKeywordSuggestionPanel(divider);
+		this.addResultTableOnly(divider);
+		this.addCommandPanel(divider);
+		this.addCodeViewer(divider);
+		
 		// setting relative weights
-		divider.setWeights(new int[] { 2, 1, 2 });
+		divider.setWeights(new int[] { 2, 2, 1, 2 });
 	}
 
 	protected void selectHighlightCodeViewer() {
@@ -539,37 +682,11 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addUtilityLayer(Composite parent) {
 		// adding the utility layer
 		final Composite composite2 = new Composite(parent, SWT.NONE);
-		GridLayout gridLayout2 = new GridLayout(3, false);
-		gridLayout.marginWidth = 0;
-		gridLayout.marginHeight = 0;
-		gridLayout.verticalSpacing = 5;
-		gridLayout.horizontalSpacing = 5;
+		GridLayout gridLayout2 = makeGridLayout(2);
 		composite2.setLayout(gridLayout2);
 
 		GridData gridData2 = new GridData(SWT.CENTER, SWT.FILL, true, false);
 		composite2.setLayoutData(gridData2);
-
-		// Label blank = new Label(composite2, SWT.NONE);
-		// Label info = new Label(composite2, SWT.NONE);
-		// info.setText("Press Ctrl+Space to Check Suggested Queries.");
-		final Button remoteButton = new Button(composite2, SWT.CHECK);
-		remoteButton.setText("Use remote");
-		remoteButton.addSelectionListener(new SelectionListener() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			
-		});
 
 		// associateContext=new Button(composite2, SWT.CHECK);
 		// final Button confirm = new Button(composite2, SWT.CHECK);
@@ -584,21 +701,20 @@ public class BugDoctorDashboardView extends ViewPart {
 				// TODO Auto-generated method stub
 				if (clearButton.getSelection()) {
 					try {
-						//clearing all items
+						// clearing all items
 						input.setText("");
 						viewer.setContentProvider(new ViewContentProvider());
 						codeViewer.setText("");
-						//clear the example view as well.
+						bugReportViewer.setText("");
+						// clear the example view as well.
 						IWorkbenchPage page = (IWorkbenchPage) PlatformUI
 								.getWorkbench().getActiveWorkbenchWindow()
 								.getActivePage();
-						String viewID = "ca.usask.cs.srlab.rack.views.RACKExampleView";
-						PlatformUI.getWorkbench()
-								.getActiveWorkbenchWindow().getActivePage()
-								.showView(viewID);
+						String viewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView";
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+								.getActivePage().showView(viewID);
 						IViewPart vpart = page.findView(viewID);
-						
-						
+
 					} catch (Exception exc3) {
 						// handle the exception
 					}
@@ -608,9 +724,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
-				
 			}
-
 		});
 	}
 
@@ -625,13 +739,17 @@ public class BugDoctorDashboardView extends ViewPart {
 		GridData gdata = new GridData(SWT.FILL, SWT.FILL, true, true);
 		parent.setLayoutData(gdata);
 
+		addBugReportMetaData(parent);
 		addSearchPanel(parent);
 		addUtilityLayer(parent);
 		addResultTable(parent);
 
 		// Create the help context id for the viewer's control
-		PlatformUI.getWorkbench().getHelpSystem()
-				.setHelp(viewer.getControl(), "ca.usask.cs.srlab.bugdoctor.viewer");
+		PlatformUI
+				.getWorkbench()
+				.getHelpSystem()
+				.setHelp(viewer.getControl(),
+						"ca.usask.cs.srlab.bugdoctor.viewer");
 	}
 
 	class ViewLabelProvider extends LabelProvider implements
