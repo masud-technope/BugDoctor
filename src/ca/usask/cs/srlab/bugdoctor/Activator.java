@@ -19,6 +19,7 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	public static String SELECTED_REPOSITORY = new String();
+
 	/**
 	 * The constructor
 	 */
@@ -65,14 +66,29 @@ public class Activator extends AbstractUIPlugin {
 	}
 
 	public void loadDefaultConfigs() {
-		IEclipsePreferences store = InstanceScope.INSTANCE
-				.getNode("ca.usask.cs.srlab.bugdoctor");
-		store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
-		store.put("STOPWORD_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/pp-data");
-		store.put("SAMURAI_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/samurai-data");
-		store.put("MAX_ENT_MODEL_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/models");
+		IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
+		/*
+		 * store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
+		 * store.put("STOPWORD_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/pp-data");
+		 * store.put("SAMURAI_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/samurai-data");
+		 * store.put("MAX_ENT_MODEL_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/models");
+		 * store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+		 * store.put("SELECTED_BUG", "5653"); store.put("REPOSITORY_ROOT",
+		 * "C:\\MyWorks\\PhDThesisTool\\ssystems");
+		 */
+
+		store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
+		store.put("STOPWORD_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\pp-data");
+		store.put("SAMURAI_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\samurai-data");
+		store.put("MAX_ENT_MODEL_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\models");
 		store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 		store.put("SELECTED_BUG", "5653");
+		store.put("REPOSITORY_ROOT", "ssystems");
+		store.put("GROUND_TRUTH_DIR", "C:\\MyWorks\\PhDThesisTool\\goldset");
+
 	}
 
 }

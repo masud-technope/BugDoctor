@@ -42,4 +42,6 @@ Bundle-ClassPath: .,
  bugdoctor.lib/slf4j-api-1.7.17.jar,
  bugdoctor.lib/stanford-postagger-3.9.2.jar,
  bugdoctor.lib/weka.jar,
- bugdoctor.lib/xom.jar
+ bugdoctor.lib/xom.jar,
+ bugdoctor.lib/ca.usask.cs.srlab.query-executor.jar,
+ bugdoctor.lib/

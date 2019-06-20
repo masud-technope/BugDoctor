@@ -21,15 +21,11 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 
-public class WorkbenchPreferencePage extends PreferencePage implements
-		IWorkbenchPreferencePage {
+public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
 	@Override
 	public void init(IWorkbench workbench) {
 		// TODO Auto-generated method stub
-		
-		
-		
 	}
 
 	@Override
@@ -44,13 +40,11 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 		gridData.heightHint = 25;
 		gridData.widthHint = 260;
 
-		GridData labelGridData = new GridData(SWT.LEFT, SWT.CENTER, false,
-				false);
+		GridData labelGridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
 		labelGridData.heightHint = 25;
 		labelGridData.widthHint = 120;
 
-		GridData buttonGridData = new GridData(SWT.LEFT, SWT.CENTER, false,
-				false);
+		GridData buttonGridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
 		buttonGridData.heightHint = 25;
 		buttonGridData.widthHint = 120;
 
@@ -73,12 +67,10 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				try {
-					DirectoryDialog dirDialog = new DirectoryDialog(composite
-							.getShell());
+					DirectoryDialog dirDialog = new DirectoryDialog(composite.getShell());
 					String homeDir = dirDialog.open();
 					homeDirText.setText(homeDir);
-					IEclipsePreferences store = InstanceScope.INSTANCE
-							.getNode("ca.usask.cs.srlab.bugdoctor");
+					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 					store.put("HOME_DIR", homeDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("HOME_DIR missing!");
@@ -112,12 +104,10 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				try {
-					DirectoryDialog dirDialog = new DirectoryDialog(composite
-							.getShell());
+					DirectoryDialog dirDialog = new DirectoryDialog(composite.getShell());
 					String stopHomeDir = dirDialog.open();
 					stopDirText.setText(stopHomeDir);
-					IEclipsePreferences store = InstanceScope.INSTANCE
-							.getNode("ca.usask.cs.srlab.bugdoctor");
+					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 					store.put("STOPWORD_DIR", stopDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("STOPWORD_DIR missing!");
@@ -149,12 +139,10 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				try {
-					DirectoryDialog dirDialog = new DirectoryDialog(composite
-							.getShell());
+					DirectoryDialog dirDialog = new DirectoryDialog(composite.getShell());
 					String samuraiHomeDir = dirDialog.open();
 					samuraiDirText.setText(samuraiHomeDir);
-					IEclipsePreferences store = InstanceScope.INSTANCE
-							.getNode("ca.usask.cs.srlab.bugdoctor");
+					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 					store.put("SAMURAI_DIR", samuraiDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("SAMURAI_DIR missing!");
@@ -186,12 +174,10 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				try {
-					DirectoryDialog dirDialog = new DirectoryDialog(composite
-							.getShell());
+					DirectoryDialog dirDialog = new DirectoryDialog(composite.getShell());
 					String maxEntModelHomeDir = dirDialog.open();
 					maxEntModelDirText.setText(maxEntModelHomeDir);
-					IEclipsePreferences store = InstanceScope.INSTANCE
-							.getNode("ca.usask.cs.srlab.bugdoctor");
+					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 					store.put("MAX_ENT_MODEL_DIR", maxEntModelDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("MODEL_DIR missing!");
@@ -209,9 +195,8 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 		repoLabel.setLayoutData(labelGridData);
 		repoLabel.setText("Selected Project:");
 
-		String[] availableRepos = new String[] { "ecf", "eclipse.jdt.core",
-				"eclipse.jdt.debug", "eclipse.jdt.ui", "eclipse.pde.ui",
-				"log4j", "sling", "tomcat70" };
+		String[] availableRepos = new String[] { "ecf", "eclipse.jdt.core", "eclipse.jdt.debug", "eclipse.jdt.ui",
+				"eclipse.pde.ui", "log4j", "sling", "tomcat70" };
 		Combo repos = new Combo(composite, SWT.DROP_DOWN);
 		repos.setItems(availableRepos);
 		repos.setLayoutData(gridData);
@@ -225,11 +210,9 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				try {
-					String selected_repository = availableRepos[repos
-							.getSelectionIndex()];
+					String selected_repository = availableRepos[repos.getSelectionIndex()];
 
-					IEclipsePreferences store = InstanceScope.INSTANCE
-							.getNode("ca.usask.cs.srlab.bugdoctor");
+					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 					store.put("SELECTED_REPOSITORY", selected_repository);
 				} catch (Exception exc) {
 					System.err.println("No repository selected!");
@@ -242,10 +225,43 @@ public class WorkbenchPreferencePage extends PreferencePage implements
 			}
 		});
 
+		/**** Ground Truth Directory ***/
+		Label gtruthDirLabel = new Label(composite, SWT.BOLD);
+		gtruthDirLabel.setLayoutData(labelGridData);
+		gtruthDirLabel.setText("Ground Truth Directory:");
+
+		Text gtruthDirText = new Text(composite, SWT.NONE);
+		gtruthDirText.setLayoutData(gridData);
+		gtruthDirText.setText("Enter the ground truth directory");
+
+		Button gtruthHomeButton = new Button(composite, SWT.PUSH);
+		gtruthHomeButton.setLayoutData(buttonGridData);
+		gtruthHomeButton.setText("Change");
+
+		gtruthHomeButton.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				try {
+					DirectoryDialog dirDialog = new DirectoryDialog(composite.getShell());
+					String gtruthDir = dirDialog.open();
+					gtruthDirText.setText(gtruthDir);
+					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
+					store.put("GROUND_TRUTH_DIR", maxEntModelDirText.getText());
+				} catch (Exception exc) {
+					System.err.println("GROUND_TRUTH_DIR missing!");
+				}
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+			}
+		});
+
 		try {
 			String SEviewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorDashboardView";
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					.getActivePage().showView(SEviewID);
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(SEviewID);
 		} catch (Exception exc) {
 			// handle the exception
 		}
