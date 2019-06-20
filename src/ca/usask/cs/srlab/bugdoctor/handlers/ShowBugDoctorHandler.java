@@ -8,6 +8,9 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -35,22 +38,24 @@ public class ShowBugDoctorHandler extends AbstractHandler {
 					// IPath path = project.getFullPath();
 					// System.out.println(project.getName());
 					Activator.SELECTED_REPOSITORY = project.getName();
-					System.out.println(Activator.SELECTED_REPOSITORY);
-					
-					
-					
-					
+					//System.out.println(Activator.SELECTED_REPOSITORY);
+					IEclipsePreferences store = InstanceScope.INSTANCE
+							.getNode("ca.usask.cs.srlab.bugdoctor");
+					store.put("SELECTED_REPOSITORY",
+							Activator.SELECTED_REPOSITORY);
 				}
 			}
 
-			String REBviewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView";
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					.getActivePage().showView(REBviewID);
-			
+			/*
+			 * String REBviewID =
+			 * "ca.usask.cs.srlab.bugdoctor.views.BugDoctorExampleView";
+			 * PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+			 * .getActivePage().showView(REBviewID);
+			 */
+
 			String SEviewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorDashboardView";
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow()
 					.getActivePage().showView(SEviewID);
-			
 
 			System.out.println("BugDoctor windows shown successfully");
 

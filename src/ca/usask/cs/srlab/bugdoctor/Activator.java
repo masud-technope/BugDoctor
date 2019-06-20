@@ -1,5 +1,7 @@
 package ca.usask.cs.srlab.bugdoctor;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -17,8 +19,6 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	public static String SELECTED_REPOSITORY = new String();
-	public static String HOME_DIR = "F:/MyWorks/Thesis Works/PhDThesisTool";
-
 	/**
 	 * The constructor
 	 */
@@ -35,6 +35,7 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		this.loadDefaultConfigs();
 
 	}
 
@@ -61,6 +62,17 @@ public class Activator extends AbstractUIPlugin {
 
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+
+	public void loadDefaultConfigs() {
+		IEclipsePreferences store = InstanceScope.INSTANCE
+				.getNode("ca.usask.cs.srlab.bugdoctor");
+		store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
+		store.put("STOPWORD_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/pp-data");
+		store.put("SAMURAI_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/samurai-data");
+		store.put("MAX_ENT_MODEL_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/models");
+		store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+		store.put("SELECTED_BUG", "5653");
 	}
 
 }
