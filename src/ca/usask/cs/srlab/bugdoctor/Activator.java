@@ -66,28 +66,37 @@ public class Activator extends AbstractUIPlugin {
 	}
 
 	public void loadDefaultConfigs() {
-		IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
-		/*
-		 * store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
-		 * store.put("STOPWORD_DIR",
-		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/pp-data");
-		 * store.put("SAMURAI_DIR",
-		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/samurai-data");
-		 * store.put("MAX_ENT_MODEL_DIR",
-		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/models");
-		 * store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
-		 * store.put("SELECTED_BUG", "5653"); store.put("REPOSITORY_ROOT",
-		 * "C:\\MyWorks\\PhDThesisTool\\ssystems");
-		 */
+		IEclipsePreferences store = InstanceScope.INSTANCE
+				.getNode("ca.usask.cs.srlab.bugdoctor");
 
-		store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
-		store.put("STOPWORD_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\pp-data");
-		store.put("SAMURAI_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\samurai-data");
-		store.put("MAX_ENT_MODEL_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\models");
+		store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
+		store.put("STOPWORD_DIR",
+				"F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/pp-data");
+		store.put("SAMURAI_DIR",
+				"F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/samurai-data");
+		store.put("MAX_ENT_MODEL_DIR",
+				"F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/models");
 		store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 		store.put("SELECTED_BUG", "5653");
 		store.put("REPOSITORY_ROOT", "ssystems");
-		store.put("GROUND_TRUTH_DIR", "C:\\MyWorks\\PhDThesisTool\\goldset");
+		store.put("GROUND_TRUTH_DIR",
+				"F:/MyWorks/Thesis Works/PhDThesisTool/goldset");
+		store.put("STACK_TRACE_DIR",
+				"F:/MyWorks/Thesis Works/PhDThesisTool/stacktraces");
+
+		/*
+		 * store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
+		 * store.put("STOPWORD_DIR",
+		 * "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\pp-data");
+		 * store.put("SAMURAI_DIR",
+		 * "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\samurai-data");
+		 * store.put("MAX_ENT_MODEL_DIR",
+		 * "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\models");
+		 * store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+		 * store.put("SELECTED_BUG", "5653"); store.put("REPOSITORY_ROOT",
+		 * "ssystems"); store.put("GROUND_TRUTH_DIR",
+		 * "C:\\MyWorks\\PhDThesisTool\\goldset");
+		 */
 
 	}
 
