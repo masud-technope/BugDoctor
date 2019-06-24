@@ -46,4 +46,5 @@ Bundle-ClassPath: .,
  bugdoctor.lib/ca.usask.cs.srlab.query-executor.jar,
  bugdoctor.lib/ca.usask.cs.srlab.blizzard-qrmodule.jar,
  bugdoctor.lib/ca.usask.cs.srlab.acer-qrmodule.jar,
- bugdoctor.lib/SnowballStemmer.jar
+ bugdoctor.lib/SnowballStemmer.jar,
+ icons/

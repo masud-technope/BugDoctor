@@ -5,6 +5,8 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import qd.core.EntropyCalc;
 
@@ -19,6 +21,7 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	public static String SELECTED_REPOSITORY = new String();
+	Logger logger=LoggerFactory.getLogger(Activator.class);
 
 	/**
 	 * The constructor
@@ -66,37 +69,42 @@ public class Activator extends AbstractUIPlugin {
 	}
 
 	public void loadDefaultConfigs() {
+		
+		try {
 		IEclipsePreferences store = InstanceScope.INSTANCE
 				.getNode("ca.usask.cs.srlab.bugdoctor");
 
-		store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
-		store.put("STOPWORD_DIR",
-				"F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/pp-data");
-		store.put("SAMURAI_DIR",
-				"F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/samurai-data");
-		store.put("MAX_ENT_MODEL_DIR",
-				"F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/models");
+		/*
+		 * store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
+		 * store.put("STOPWORD_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/pp-data");
+		 * store.put("SAMURAI_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/samurai-data");
+		 * store.put("MAX_ENT_MODEL_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/thesis-tool/models");
+		 * store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+		 * store.put("SELECTED_BUG", "5653"); store.put("REPOSITORY_ROOT", "ssystems");
+		 * store.put("GROUND_TRUTH_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/goldset");
+		 * store.put("STACK_TRACE_DIR",
+		 * "F:/MyWorks/Thesis Works/PhDThesisTool/stacktraces");
+		 */
+  
+		
+		store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
+		store.put("STOPWORD_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\pp-data");
+		store.put("SAMURAI_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\samurai-data");
+		store.put("MAX_ENT_MODEL_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\models");
 		store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 		store.put("SELECTED_BUG", "5653");
 		store.put("REPOSITORY_ROOT", "ssystems");
-		store.put("GROUND_TRUTH_DIR",
-				"F:/MyWorks/Thesis Works/PhDThesisTool/goldset");
-		store.put("STACK_TRACE_DIR",
-				"F:/MyWorks/Thesis Works/PhDThesisTool/stacktraces");
-
-		/*
-		 * store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
-		 * store.put("STOPWORD_DIR",
-		 * "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\pp-data");
-		 * store.put("SAMURAI_DIR",
-		 * "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\samurai-data");
-		 * store.put("MAX_ENT_MODEL_DIR",
-		 * "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\models");
-		 * store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
-		 * store.put("SELECTED_BUG", "5653"); store.put("REPOSITORY_ROOT",
-		 * "ssystems"); store.put("GROUND_TRUTH_DIR",
-		 * "C:\\MyWorks\\PhDThesisTool\\goldset");
-		 */
+		store.put("GROUND_TRUTH_DIR", "C:\\MyWorks\\PhDThesisTool\\goldset");
+		store.put("STACK_TRACE_DIR","C:\\MyWorks\\PhDThesisTool\\stacktraces"); 
+		}catch(Exception e) {
+			System.err.println("Failed to load the default configuration");
+			logger.error("Failed to load the default configuration!");
+		}
+		 
 
 	}
 

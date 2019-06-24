@@ -2,9 +2,7 @@ package ca.usask.cs.srlab.bugdoctor;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -20,8 +18,12 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
+
+	Logger logger = LoggerFactory.getLogger(WorkbenchPreferencePage.class);
 
 	@Override
 	public void init(IWorkbench workbench) {
@@ -74,6 +76,7 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 					store.put("HOME_DIR", homeDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("HOME_DIR missing!");
+					logger.error("HOME_DIR missing!");
 				}
 			}
 
@@ -111,6 +114,7 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 					store.put("STOPWORD_DIR", stopDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("STOPWORD_DIR missing!");
+					logger.error("STOPWORD_DIR missing!");
 				}
 			}
 
@@ -146,6 +150,7 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 					store.put("SAMURAI_DIR", samuraiDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("SAMURAI_DIR missing!");
+					logger.error("SAMURAI_DIR missing!");
 				}
 			}
 
@@ -181,6 +186,7 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 					store.put("MAX_ENT_MODEL_DIR", maxEntModelDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("MODEL_DIR missing!");
+					logger.error("MODEL_DIR missing!");
 				}
 			}
 
@@ -211,11 +217,11 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 				// TODO Auto-generated method stub
 				try {
 					String selected_repository = availableRepos[repos.getSelectionIndex()];
-
 					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 					store.put("SELECTED_REPOSITORY", selected_repository);
 				} catch (Exception exc) {
 					System.err.println("No repository selected!");
+					logger.error("No repository selected!");
 				}
 			}
 
@@ -247,9 +253,10 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 					String gtruthDir = dirDialog.open();
 					gtruthDirText.setText(gtruthDir);
 					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
-					store.put("GROUND_TRUTH_DIR", maxEntModelDirText.getText());
+					store.put("GROUND_TRUTH_DIR", gtruthDirText.getText());
 				} catch (Exception exc) {
 					System.err.println("GROUND_TRUTH_DIR missing!");
+					logger.error("GROUND_TRUTH_DIR missing!");
 				}
 			}
 
@@ -259,12 +266,12 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 			}
 		});
 
-		try {
+		/*try {
 			String SEviewID = "ca.usask.cs.srlab.bugdoctor.views.BugDoctorDashboardView";
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(SEviewID);
 		} catch (Exception exc) {
 			// handle the exception
-		}
+		} */
 
 		return new Composite(parent, SWT.NONE);
 	}

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="icons/"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/SnowballStemmer.jar"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/ca.usask.cs.srlab.acer-qrmodule.jar"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/commons-io-2.4.jar"/>
