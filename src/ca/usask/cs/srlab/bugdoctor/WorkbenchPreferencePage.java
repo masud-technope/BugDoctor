@@ -21,6 +21,8 @@ import org.eclipse.ui.PlatformUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import bugdoctor.core.StaticData;
+
 public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
 	Logger logger = LoggerFactory.getLogger(WorkbenchPreferencePage.class);
@@ -74,6 +76,16 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 					homeDirText.setText(homeDir);
 					IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 					store.put("HOME_DIR", homeDirText.getText());
+					String HOME_DIR=homeDirText.getText();
+					
+					//also update the home directory of all projects
+					StaticData.HOME_DIR = HOME_DIR;
+					qd.config.StaticData.HOME_DIR = HOME_DIR;
+					query.exec.config.StaticData.HOME_DIR = HOME_DIR;
+					strict.ca.usask.cs.srlab.strict.config.StaticData.HOME_DIR = HOME_DIR;
+					blizzard.config.StaticData.HOME_DIR = HOME_DIR;
+					acer.ca.usask.cs.srlab.coderank.tool.config.StaticData.HOME_DIR = HOME_DIR;
+					
 				} catch (Exception exc) {
 					System.err.println("HOME_DIR missing!");
 					logger.error("HOME_DIR missing!");

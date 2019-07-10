@@ -175,6 +175,7 @@ public class BugDoctorDashboardView extends ViewPart {
 		strict.ca.usask.cs.srlab.strict.config.StaticData.HOME_DIR = HOME_DIR;
 		blizzard.config.StaticData.HOME_DIR = HOME_DIR;
 		acer.ca.usask.cs.srlab.coderank.tool.config.StaticData.HOME_DIR = HOME_DIR;
+		
 
 		// load the entropy
 		String corpusDir = HOME_DIR + "/corpus/norm-class/" + SELECTED_REPOSITORY;
@@ -501,7 +502,7 @@ public class BugDoctorDashboardView extends ViewPart {
 				Result titleResult = new Result();
 				titleResult.token = normalizedTitle;
 				titleResult.totalScore = 1.00;
-				extendedKeywords.add(titleResult);
+				//extendedKeywords.add(titleResult);
 				ArrayList<String> keywords = qd.utility.MiscUtility.str2List(bestQuery);
 
 				for (int index = 1; index < keywords.size(); index++) {
