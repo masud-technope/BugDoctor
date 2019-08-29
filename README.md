@@ -1,4 +1,4 @@
-# BugDoctor: Supporting Source Code Search with Context-Aware, Semantics-Driven Query Reformulation
+# BugDoctor: Supporting Source Code Search with Context-Aware and Semantics-Driven Query Reformulation
 
 
 **Mohammad Masudur Rahman**, PhD Candidate
