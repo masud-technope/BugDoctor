@@ -1,46 +1,30 @@
 package ca.usask.cs.srlab.bugdoctor.views;
 
 import java.io.File;
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.bindings.keys.KeyStroke;
-import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
-import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
-import org.eclipse.jface.fieldassist.TextContentAdapter;
-import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -64,29 +48,19 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.internal.wizards.preferences.PreferencesContentProvider;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.texteditor.ITextEditor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ca.usask.cs.srlab.bugdoctor.Activator;
 import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProvider;
-import ca.usask.cs.srlab.bugdoctor.handlers.ViewContentProviderEx;
 import qd.core.EntropyCalc;
 import qd.core.QDModelLoader;
 import query.exec.lucene.LuceneSearcher;
 import query.exec.lucene.ResultFile;
 import strict.query.SearchTermProvider;
-import strict.text.normalizer.TextNormalizer;
 import style.JavaLineStyler;
 import utility.ContentLoader;
 import utility.MiscUtility;
@@ -136,6 +110,15 @@ public class BugDoctorDashboardView extends ViewPart {
 	TextStyle style3 = new TextStyle(font3, blue, null);
 	TextStyle textStyle = new TextStyle(codeFont, textColor, null);
 
+	// available methods
+	Button strictButton = null;
+	Button acerButton = null;
+	Button blizzardButton = null;
+	Button bladerButton = null;
+
+	// search buttons
+	Button searchButton = null;
+
 	// collected results
 	ArrayList<CodeMethod> collectedResults;
 
@@ -175,7 +158,6 @@ public class BugDoctorDashboardView extends ViewPart {
 		strict.ca.usask.cs.srlab.strict.config.StaticData.HOME_DIR = HOME_DIR;
 		blizzard.config.StaticData.HOME_DIR = HOME_DIR;
 		acer.ca.usask.cs.srlab.coderank.tool.config.StaticData.HOME_DIR = HOME_DIR;
-		
 
 		// load the entropy
 		String corpusDir = HOME_DIR + "/corpus/norm-class/" + SELECTED_REPOSITORY;
@@ -231,7 +213,7 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addBugReportMetaData(Composite parent) {
 		// adding bug report meta data
 		final Composite composite = new Composite(parent, SWT.NONE);
-		GridLayout brMetaDataGridLayout = makeGridLayout(5);
+		GridLayout brMetaDataGridLayout = makeGridLayout(7);
 		composite.setLayout(brMetaDataGridLayout);
 
 		GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, false);
@@ -265,7 +247,7 @@ public class BugDoctorDashboardView extends ViewPart {
 		projectlabel.setLayoutData(gdata3);
 
 		Label _bugIDlabel = new Label(composite, SWT.NONE);
-		_bugIDlabel.setText("BugID:");
+		_bugIDlabel.setText("ID#:");
 		_bugIDlabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
 		_bugIDlabel.setLayoutData(gdata2);
 
@@ -277,14 +259,14 @@ public class BugDoctorDashboardView extends ViewPart {
 
 		GridData gdata4 = new GridData();
 		gdata4.heightHint = 30;
-		gdata4.widthHint = 200;
+		gdata4.widthHint = 220;
 		gdata4.horizontalAlignment = SWT.BEGINNING;
 
 		Button openButton = new Button(composite, SWT.PUSH);
-		openButton.setText("Open a Bug Report");
-		openButton.setToolTipText("Open a new bug report");
+		openButton.setText("Open Issue Report");
+		openButton.setToolTipText("Open a new issue report");
 		openButton.setFont(font1);
-		openButton.setImage(getRelevantAPIImage());
+		openButton.setImage(getIssueReportImage());
 		openButton.setLayoutData(gdata4);
 		openButton.addSelectionListener(new SelectionListener() {
 			@Override
@@ -333,6 +315,74 @@ public class BugDoctorDashboardView extends ViewPart {
 				// TODO Auto-generated method stub
 			}
 		});
+
+		// concept mode
+		Button concept = new Button(composite, SWT.RADIO);
+		concept.setText("Concepts");
+		concept.setSelection(true);
+		concept.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				// adding the concept location engine
+				blizzardButton.setEnabled(false);
+				bladerButton.setEnabled(false);
+				strictButton.setEnabled(true);
+				acerButton.setEnabled(true);
+
+				// setting up the bugs
+				openButton.setText("Open Change Request");
+				openButton.setImage(getIssueReportImage());
+				searchButton.setText("Search Relevant Code");
+				searchButton.setImage(getCodeSearchImage());
+
+				// modify the table columns
+				TableColumn[] cols = resultViewer.getTable().getColumns();
+				cols[0].setText("Code Entity");
+				cols[1].setText("Relevance");
+				
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
+		// buggy mode
+		Button buggy = new Button(composite, SWT.RADIO);
+		buggy.setText("Bugs");
+		buggy.setSelection(false);
+		buggy.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				// enabling the bug localization engine
+				blizzardButton.setEnabled(true);
+				bladerButton.setEnabled(true);
+				strictButton.setEnabled(false);
+				acerButton.setEnabled(false);
+
+				// setting up the concepts
+				openButton.setText("Open Bug Report");
+				openButton.setImage(getBugReportImage());
+				searchButton.setText("Search Buggy Code");
+				searchButton.setImage(getBugSearchImage());
+				
+				// modify the table columns
+				TableColumn[] cols = resultViewer.getTable().getColumns();
+				cols[0].setText("Buggy Entity");
+				cols[1].setText("Suspiciousness");
+				
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+			}
+		});
+
 	}
 
 	protected void loadGroundTruth(String repoName, int bugID) {
@@ -352,7 +402,7 @@ public class BugDoctorDashboardView extends ViewPart {
 				}
 			}
 		} catch (Exception exc) {
-			logger.error("Failed to load the ground truth !"+exc.getMessage());
+			logger.error("Failed to load the ground truth !" + exc.getMessage());
 		}
 	}
 
@@ -397,23 +447,23 @@ public class BugDoctorDashboardView extends ViewPart {
 
 		input = new Text(composite, SWT.SINGLE | SWT.BORDER);
 		input.setEditable(true);
-		input.setToolTipText("Enter your query to find out the buggy code");
+		input.setToolTipText("Enter a query to find your code");
 		Font myfont = new Font(composite.getDisplay(), "Arial", 11, SWT.NORMAL);
 		input.setFont(myfont);
 		input.setLayoutData(gdata2);
 
 		GridData gdata4 = new GridData();
 		gdata4.heightHint = 30;
-		gdata4.widthHint = 200;
+		gdata4.widthHint = 220;
 		gdata4.horizontalAlignment = SWT.BEGINNING;
 
-		Button rackButton = new Button(composite, SWT.PUSH);
-		rackButton.setText("Search Buggy Code");
-		rackButton.setToolTipText("Click to locate the buggy code");
-		rackButton.setFont(font1);
-		rackButton.setImage(getBugSearchImage());
-		rackButton.setLayoutData(gdata4);
-		rackButton.addSelectionListener(new SelectionListener() {
+		searchButton = new Button(composite, SWT.PUSH);
+		searchButton.setText("Search Relevant Code");
+		searchButton.setToolTipText("Click to locate the relevant code");
+		searchButton.setFont(font1);
+		searchButton.setImage(getCodeSearchImage());
+		searchButton.setLayoutData(gdata4);
+		searchButton.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
@@ -455,7 +505,6 @@ public class BugDoctorDashboardView extends ViewPart {
 								}
 								if (entities.size() == StaticData.MAX_SEARCH_RESULT_SIZE)
 									break;
-
 							}
 
 							// populate and highlight
@@ -502,7 +551,7 @@ public class BugDoctorDashboardView extends ViewPart {
 				Result titleResult = new Result();
 				titleResult.token = normalizedTitle;
 				titleResult.totalScore = 1.00;
-				//extendedKeywords.add(titleResult);
+				// extendedKeywords.add(titleResult);
 				ArrayList<String> keywords = qd.utility.MiscUtility.str2List(bestQuery);
 
 				for (int index = 1; index < keywords.size(); index++) {
@@ -548,8 +597,12 @@ public class BugDoctorDashboardView extends ViewPart {
 		}
 	}
 
-	protected Image getRelevantAPIImage() {
+	protected Image getBugReportImage() {
 		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "bugdoctor.png").createImage();
+	}
+
+	protected Image getIssueReportImage() {
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "issue-report.png").createImage();
 	}
 
 	protected Image get_search_image() {
@@ -566,6 +619,10 @@ public class BugDoctorDashboardView extends ViewPart {
 
 	protected Image getBugSearchImage() {
 		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "bug-search.png").createImage();
+	}
+
+	protected Image getCodeSearchImage() {
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "search16.png").createImage();
 	}
 
 	protected Image getCodeResultImage() {
@@ -614,6 +671,7 @@ public class BugDoctorDashboardView extends ViewPart {
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override
 					public void run() {
+
 						IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 						String SELECTED_REPOSITORY = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 						int bugID = Integer.parseInt(bugIDLabel.getText().trim());
@@ -825,6 +883,15 @@ public class BugDoctorDashboardView extends ViewPart {
 		}
 	}
 
+	protected void setupBugLocalization() {
+		// setting up the stage for bug localization
+
+	}
+
+	protected void setupConceptLocalization() {
+
+	}
+
 	protected void addCommandPanel(SashForm divider) {
 		// now add the search button
 		final Composite cmdPanel = new Composite(divider, SWT.NONE);
@@ -835,7 +902,7 @@ public class BugDoctorDashboardView extends ViewPart {
 		cmdGridLayoutData.heightHint = 30;
 		cmdPanel.setLayoutData(cmdGridLayoutData);
 
-		final Button searchButton = new Button(cmdPanel, SWT.PUSH);
+		/*final Button searchButton = new Button(cmdPanel, SWT.PUSH);
 		searchButton.setText("Search Buggy Code");
 		searchButton.setSize(150, 25);
 		searchButton.setFont(font1);
@@ -861,7 +928,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 			}
-		});
+		}); */
 
 		// add the result view
 		GridData resultGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -872,7 +939,7 @@ public class BugDoctorDashboardView extends ViewPart {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
 
-		String[] columns = { "Buggy Entity", "Suspiciousness" };
+		String[] columns = { "Code Entity", "Relevance" };
 		int[] colWidth = { 400, 100 };
 		int[] colAlignment = { SWT.LEFT, SWT.LEFT };
 		for (int i = 0; i < columns.length; i++) {
@@ -1101,9 +1168,11 @@ public class BugDoctorDashboardView extends ViewPart {
 
 	protected void highLightBuggyRows(ArrayList<Integer> buggyIndices, Table table) {
 		TableItem[] rows = table.getItems();
+		Color red = new Color(null, 255, 0, 0);
 		for (int index : buggyIndices) {
 			TableItem buggyRow = rows[index];
-			buggyRow.setBackground(new Color(null, 255, 0, 0));
+			buggyRow.setBackground(0,red);
+			buggyRow.setBackground(1,red);
 		}
 	}
 
@@ -1171,15 +1240,28 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addUtilityLayer(Composite parent) {
 		// adding the utility layer
 		final Composite composite2 = new Composite(parent, SWT.NONE);
-		GridLayout gridLayout2 = makeGridLayout(2);
+		GridLayout gridLayout2 = makeGridLayout(6);
 		composite2.setLayout(gridLayout2);
 
 		GridData gridData2 = new GridData(SWT.CENTER, SWT.FILL, true, false);
 		composite2.setLayoutData(gridData2);
 
-		// associateContext=new Button(composite2, SWT.CHECK);
-		// final Button confirm = new Button(composite2, SWT.CHECK);
-		// associateContext.setText("Associate context");
+		strictButton = new Button(composite2, SWT.RADIO);
+		strictButton.setText("STRICT");
+		strictButton.setSelection(true);
+
+		acerButton = new Button(composite2, SWT.RADIO);
+		acerButton.setText("ACER");
+		acerButton.setSelection(false);
+
+		blizzardButton = new Button(composite2, SWT.RADIO);
+		blizzardButton.setText("BLIZZARD");
+		blizzardButton.setSelection(false);
+
+		bladerButton = new Button(composite2, SWT.RADIO);
+		bladerButton.setText("BLADER");
+		bladerButton.setSelection(false);
+
 		final Button clearButton = new Button(composite2, SWT.CHECK);
 		clearButton.setText("Reset search");
 		// adding listener to clear button

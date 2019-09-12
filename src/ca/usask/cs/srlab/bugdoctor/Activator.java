@@ -75,15 +75,15 @@ public class Activator extends AbstractUIPlugin {
 				.getNode("ca.usask.cs.srlab.bugdoctor");
 
 		
-			store.put("HOME_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool");
-			store.put("STOPWORD_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/pp-data");
-			store.put("SAMURAI_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/samurai-data");
-			store.put("MAX_ENT_MODEL_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/models");
+			store.put("HOME_DIR", "C:/MyWorks/PhDThesisTool");
+			store.put("STOPWORD_DIR", "C:/MyWorks/PhDThesisTool/pp-data");
+			store.put("SAMURAI_DIR", "C:/MyWorks/PhDThesisTool/samurai-data");
+			store.put("MAX_ENT_MODEL_DIR", "C:/MyWorks/PhDThesisTool/models");
 			store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 			store.put("SELECTED_BUG", "5653");
 			store.put("REPOSITORY_ROOT", "ssystems");
-			store.put("GROUND_TRUTH_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/goldset");
-			store.put("STACK_TRACE_DIR", "F:/MyWorks/Thesis Works/PhDThesisTool/stacktraces");
+			store.put("GROUND_TRUTH_DIR", "C:/MyWorks/PhDThesisTool/goldset");
+			store.put("STACK_TRACE_DIR", "C:/MyWorks/PhDThesisTool/stacktraces");
 		 
   
 		
@@ -96,6 +96,8 @@ public class Activator extends AbstractUIPlugin {
 		store.put("REPOSITORY_ROOT", "ssystems");
 		store.put("GROUND_TRUTH_DIR", "C:\\MyWorks\\PhDThesisTool\\goldset");
 		store.put("STACK_TRACE_DIR","C:\\MyWorks\\PhDThesisTool\\stacktraces");  */
+			
+			
 		}catch(Exception e) {
 			System.err.println("Failed to load the default configuration");
 			logger.error("Failed to load the default configuration!");
