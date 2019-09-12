@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -115,6 +116,8 @@ public class BugDoctorDashboardView extends ViewPart {
 	Button acerButton = null;
 	Button blizzardButton = null;
 	Button bladerButton = null;
+
+	Button openButton = null;
 
 	// search buttons
 	Button searchButton = null;
@@ -262,7 +265,7 @@ public class BugDoctorDashboardView extends ViewPart {
 		gdata4.widthHint = 220;
 		gdata4.horizontalAlignment = SWT.BEGINNING;
 
-		Button openButton = new Button(composite, SWT.PUSH);
+		openButton = new Button(composite, SWT.PUSH);
 		openButton.setText("Open Issue Report");
 		openButton.setToolTipText("Open a new issue report");
 		openButton.setFont(font1);
@@ -325,28 +328,12 @@ public class BugDoctorDashboardView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				// adding the concept location engine
-				blizzardButton.setEnabled(false);
-				bladerButton.setEnabled(false);
-				strictButton.setEnabled(true);
-				acerButton.setEnabled(true);
-
-				// setting up the bugs
-				openButton.setText("Open Change Request");
-				openButton.setImage(getIssueReportImage());
-				searchButton.setText("Search Relevant Code");
-				searchButton.setImage(getCodeSearchImage());
-
-				// modify the table columns
-				TableColumn[] cols = resultViewer.getTable().getColumns();
-				cols[0].setText("Code Entity");
-				cols[1].setText("Relevance");
-				
+				setupConceptLocalization();
 			}
 
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
-
 			}
 		});
 
@@ -359,22 +346,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				// enabling the bug localization engine
-				blizzardButton.setEnabled(true);
-				bladerButton.setEnabled(true);
-				strictButton.setEnabled(false);
-				acerButton.setEnabled(false);
-
-				// setting up the concepts
-				openButton.setText("Open Bug Report");
-				openButton.setImage(getBugReportImage());
-				searchButton.setText("Search Buggy Code");
-				searchButton.setImage(getBugSearchImage());
-				
-				// modify the table columns
-				TableColumn[] cols = resultViewer.getTable().getColumns();
-				cols[0].setText("Buggy Entity");
-				cols[1].setText("Suspiciousness");
-				
+				setupBugLocalization();
 			}
 
 			@Override
@@ -678,49 +650,66 @@ public class BugDoctorDashboardView extends ViewPart {
 
 						String bugReport = bugReportViewer.getText();
 						String title = bugReport.split("\n")[0].trim();
-						strict.ca.usask.cs.srlab.strict.config.StaticData.STOPWORD_DIR = store.get("STOPWORD_DIR",
-								"default_stopword");
-						strict.ca.usask.cs.srlab.strict.config.StaticData.SAMURAI_DIR = store.get("SAMURAI_DIR",
-								"default_samurai");
-
-						blizzard.config.StaticData.HOME_DIR = store.get("HOME_DIR", "default_home");
-						blizzard.config.StaticData.STACK_TRACE_DIR = store.get("STACK_TRACE_DIR", "default_st_dir");
-
 						String bugDoctorQuery = new String();
 
-						BugReportClassifier brClassifier = new BugReportClassifier(bugReport);
-						String reportClass = brClassifier.determineReportClass();
-						if (reportClass.equals("ST")) {
-							BLIZZARDQueryProvider bzProvider = new BLIZZARDQueryProvider(SELECTED_REPOSITORY, bugID,
-									title, bugReport);
-							blizzard.config.StaticData.MAX_ST_SUGGESTED_QUERY_LEN = StaticData.BR_ST_QR_LEN;
-							bugDoctorQuery = bzProvider.provideBLIZZARDQuery();
+						ArrayList<Result> suggestedKeywords = new ArrayList<Result>();
+						int startIndex = 0;
 
-						} else {
+						// concepts mode of BugDoctor
+						if (strictButton.getSelection() && strictButton.getEnabled()) {
+							strict.ca.usask.cs.srlab.strict.config.StaticData.STOPWORD_DIR = store.get("STOPWORD_DIR",
+									"default_stopword");
+							strict.ca.usask.cs.srlab.strict.config.StaticData.SAMURAI_DIR = store.get("SAMURAI_DIR",
+									"default_samurai");
+							strict.ca.usask.cs.srlab.strict.config.StaticData.MAX_ENT_MODELS_DIR = store
+									.get("MAX_ENT_MODEL_DIR", "default_model_dir");
+
 							SearchTermProvider stProvider = new SearchTermProvider(SELECTED_REPOSITORY, bugID, title,
 									bugReport);
 							String bestQuery = stProvider.deliverBestQuery(entCalc);
 							System.out.println(bestQuery);
 							bugDoctorQuery = bestQuery;
 						}
+						// buggy mode of BugDoctor
+						else if (blizzardButton.getSelection() && blizzardButton.getEnabled()) {
+							blizzard.config.StaticData.HOME_DIR = store.get("HOME_DIR", "default_home");
+							blizzard.config.StaticData.STACK_TRACE_DIR = store.get("STACK_TRACE_DIR", "default_st_dir");
+							blizzard.config.StaticData.STOPWORD_DIR = store.get("STOPWORD_DIR", "default_stopword");
 
-						// now populate these keywords
-						ArrayList<String> keywords = qd.utility.MiscUtility.str2List(bugDoctorQuery);
+							BugReportClassifier brClassifier = new BugReportClassifier(bugReport);
+							String reportClass = brClassifier.determineReportClass();
+							if (reportClass.equals("ST")) {
+								BLIZZARDQueryProvider bzProvider = new BLIZZARDQueryProvider(SELECTED_REPOSITORY, bugID,
+										title, bugReport);
+								blizzard.config.StaticData.MAX_ST_SUGGESTED_QUERY_LEN = StaticData.BR_ST_QR_LEN;
+								bugDoctorQuery = bzProvider.provideBLIZZARDQuery();
+								// add the title for noisy
+								if (reportClass.equals("ST")) {
+									String normalizedTitle = new blizzard.text.normalizer.TextNormalizer(title)
+											.normalizeSimple();
 
-						ArrayList<Result> suggestedKeywords = new ArrayList<Result>();
+									Result titleResult = new Result();
+									titleResult.token = normalizedTitle;
+									titleResult.totalScore = 1.00;
+									suggestedKeywords.add(titleResult);
 
-						// add the title for noisy
-						if (reportClass.equals("ST")) {
-							String normalizedTitle = new blizzard.text.normalizer.TextNormalizer(title)
-									.normalizeSimple();
-							Result titleResult = new Result();
-							titleResult.token = normalizedTitle;
-							titleResult.totalScore = 1.00;
-							suggestedKeywords.add(titleResult);
+									// populating the results
+									startIndex = reportClass.equals("ST") ? 0 : 1;
+								}
+							}
+
+						} else if (bladerButton.getSelection() && bladerButton.getEnabled()) {
+
+						} else {
+							MessageBox selectMethod = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ERROR);
+							selectMethod.setText("Error!");
+							selectMethod.setMessage("Please choose a technique!");
+							int returnedCode = selectMethod.open();
+							System.out.println(returnedCode);
 						}
 
-						int startIndex = reportClass.equals("ST") ? 0 : 1;
-
+						// now populate these keywords
+						ArrayList<String> keywords = MiscUtility.str2List(bugDoctorQuery);
 						for (int index = startIndex; index < keywords.size(); index++) {
 							String keyword = keywords.get(index);
 							double relevance = 1 - (double) index / keywords.size();
@@ -885,11 +874,42 @@ public class BugDoctorDashboardView extends ViewPart {
 
 	protected void setupBugLocalization() {
 		// setting up the stage for bug localization
+		blizzardButton.setEnabled(true);
+		bladerButton.setEnabled(true);
+		strictButton.setEnabled(false);
+		acerButton.setEnabled(false);
+		blizzardButton.setSelection(true);
 
+		// setting up the concepts
+		openButton.setText("Open Bug Report");
+		openButton.setImage(getBugReportImage());
+		searchButton.setText("Search Buggy Code");
+		searchButton.setImage(getBugSearchImage());
+
+		// modify the table columns
+		TableColumn[] cols = resultViewer.getTable().getColumns();
+		cols[0].setText("Buggy Entity");
+		cols[1].setText("Suspiciousness");
 	}
 
 	protected void setupConceptLocalization() {
+		// setting up environment for concept location
+		blizzardButton.setEnabled(false);
+		bladerButton.setEnabled(false);
+		strictButton.setEnabled(true);
+		acerButton.setEnabled(true);
+		strictButton.setSelection(true);
 
+		// setting up the bugs
+		openButton.setText("Open Change Request");
+		openButton.setImage(getIssueReportImage());
+		searchButton.setText("Search Relevant Code");
+		searchButton.setImage(getCodeSearchImage());
+
+		// modify the table columns
+		TableColumn[] cols = resultViewer.getTable().getColumns();
+		cols[0].setText("Code Entity");
+		cols[1].setText("Relevance");
 	}
 
 	protected void addCommandPanel(SashForm divider) {
@@ -901,34 +921,6 @@ public class BugDoctorDashboardView extends ViewPart {
 		GridData cmdGridLayoutData = new GridData(SWT.CENTER, SWT.CENTER, true, false);
 		cmdGridLayoutData.heightHint = 30;
 		cmdPanel.setLayoutData(cmdGridLayoutData);
-
-		/*final Button searchButton = new Button(cmdPanel, SWT.PUSH);
-		searchButton.setText("Search Buggy Code");
-		searchButton.setSize(150, 25);
-		searchButton.setFont(font1);
-		searchButton.setImage(getBugSearchImage());
-		searchButton.setLayoutData(cmdGridLayoutData);
-		searchButton.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				final String codeSearchQuery = getCodeSearchQuery();
-				// setting the query
-				if (!codeSearchQuery.isEmpty()) {
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							// Need to do code search & populate
-						}
-					});
-				}
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-			}
-		}); */
 
 		// add the result view
 		GridData resultGridLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -1171,8 +1163,8 @@ public class BugDoctorDashboardView extends ViewPart {
 		Color red = new Color(null, 255, 0, 0);
 		for (int index : buggyIndices) {
 			TableItem buggyRow = rows[index];
-			buggyRow.setBackground(0,red);
-			buggyRow.setBackground(1,red);
+			buggyRow.setBackground(0, red);
+			buggyRow.setBackground(1, red);
 		}
 	}
 

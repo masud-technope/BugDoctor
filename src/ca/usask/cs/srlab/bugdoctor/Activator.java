@@ -21,7 +21,7 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	public static String SELECTED_REPOSITORY = new String();
-	Logger logger=LoggerFactory.getLogger(Activator.class);
+	Logger logger = LoggerFactory.getLogger(Activator.class);
 
 	/**
 	 * The constructor
@@ -69,39 +69,26 @@ public class Activator extends AbstractUIPlugin {
 	}
 
 	public void loadDefaultConfigs() {
-		
-		try {
-		IEclipsePreferences store = InstanceScope.INSTANCE
-				.getNode("ca.usask.cs.srlab.bugdoctor");
 
-		
-			store.put("HOME_DIR", "C:/MyWorks/PhDThesisTool");
-			store.put("STOPWORD_DIR", "C:/MyWorks/PhDThesisTool/pp-data");
-			store.put("SAMURAI_DIR", "C:/MyWorks/PhDThesisTool/samurai-data");
-			store.put("MAX_ENT_MODEL_DIR", "C:/MyWorks/PhDThesisTool/models");
+		try {
+			IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
+
+			store.put("HOME_DIR", "F:\\MyWorks\\Thesis Works\\PhDThesisTool");
+			String HOME_DIR = store.get("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
+
+			store.put("STOPWORD_DIR", HOME_DIR + "/pp-data");
+			store.put("SAMURAI_DIR", HOME_DIR + "/samurai-data");
+			store.put("MAX_ENT_MODEL_DIR", HOME_DIR + "/models");
 			store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 			store.put("SELECTED_BUG", "5653");
 			store.put("REPOSITORY_ROOT", "ssystems");
-			store.put("GROUND_TRUTH_DIR", "C:/MyWorks/PhDThesisTool/goldset");
-			store.put("STACK_TRACE_DIR", "C:/MyWorks/PhDThesisTool/stacktraces");
-		 
-  
-		
-		/*store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
-		store.put("STOPWORD_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\pp-data");
-		store.put("SAMURAI_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\samurai-data");
-		store.put("MAX_ENT_MODEL_DIR", "C:\\MyWorks\\PhDThesisTool\\BugDoctor\\models");
-		store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
-		store.put("SELECTED_BUG", "5653");
-		store.put("REPOSITORY_ROOT", "ssystems");
-		store.put("GROUND_TRUTH_DIR", "C:\\MyWorks\\PhDThesisTool\\goldset");
-		store.put("STACK_TRACE_DIR","C:\\MyWorks\\PhDThesisTool\\stacktraces");  */
-			
-			
-		}catch(Exception e) {
+			store.put("GROUND_TRUTH_DIR", HOME_DIR + "/goldset");
+			store.put("STACK_TRACE_DIR", HOME_DIR + "/stacktraces");
+
+		} catch (Exception e) {
 			System.err.println("Failed to load the default configuration");
 			logger.error("Failed to load the default configuration!");
-		} 
+		}
 	}
 
 }
