@@ -73,7 +73,7 @@ public class Activator extends AbstractUIPlugin {
 		try {
 			IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 
-			store.put("HOME_DIR", "F:\\MyWorks\\Thesis Works\\PhDThesisTool");
+			store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
 			String HOME_DIR = store.get("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
 
 			store.put("STOPWORD_DIR", HOME_DIR + "/pp-data");

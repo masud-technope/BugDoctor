@@ -176,11 +176,11 @@ public class BugDoctorDashboardView extends ViewPart {
 		logger.info("INDEX_DIR = " + indexDir);
 
 		try {
-			this.entCalc = new EntropyCalc(SELECTED_REPOSITORY, indexDir, corpusDir);
+			// this.entCalc = new EntropyCalc(SELECTED_REPOSITORY, indexDir, corpusDir);
 			// loading the model
-			if (QDModelLoader.rfModelMap.isEmpty()) {
-				QDModelLoader.loadRFModels();
-			}
+			/*
+			 * if (QDModelLoader.rfModelMap.isEmpty()) { QDModelLoader.loadRFModels(); }
+			 */
 
 			// load class rank keys
 			if (keyFileMap.isEmpty()) {
@@ -481,7 +481,6 @@ public class BugDoctorDashboardView extends ViewPart {
 
 							// populate and highlight
 							populateResultsToTable(entities);
-
 						}
 					});
 				}
@@ -511,21 +510,31 @@ public class BugDoctorDashboardView extends ViewPart {
 				IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 				int bugID = store.getInt("SELECTED_BUGID", 0);
 				String repoName = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+				qd.config.StaticData.HOME_DIR = StaticData.HOME_DIR;
 				String indexFolder = store.get("INDEX_DIR", "default_index");
 				String repoSourceFolder = store.get("REPOSITORY_SRC_DIRECTORY", "default_repo_src");
+
 				String searchQuery = input.getText();
-				CodeRankQueryExpansionProvider crProvider = new CodeRankQueryExpansionProvider(repoName, bugID,
-						searchQuery, indexFolder, repoSourceFolder, entCalc);
-				String bestQuery = crProvider.getExtendedQuery(StaticData.BR_NL_QR_LEN);
+				String bestQuery = new String();
+
+				if (acerButton.getSelection() && acerButton.getEnabled()) {
+					CodeRankQueryExpansionProvider crProvider = new CodeRankQueryExpansionProvider(repoName, bugID,
+							searchQuery, indexFolder, repoSourceFolder);
+					bestQuery = crProvider.getExtendedQuery(StaticData.BR_NL_QR_LEN);
+				} else if (bladerButton.getSelection() && bladerButton.getEnabled()) {
+					// getting the blader query
+				}
 
 				ArrayList<Result> extendedKeywords = new ArrayList<>();
+				// adding the title result
 				String normalizedTitle = new blizzard.text.normalizer.TextNormalizer(searchQuery).normalizeSimple();
 				Result titleResult = new Result();
 				titleResult.token = normalizedTitle;
 				titleResult.totalScore = 1.00;
-				// extendedKeywords.add(titleResult);
-				ArrayList<String> keywords = qd.utility.MiscUtility.str2List(bestQuery);
+				extendedKeywords.add(titleResult);
 
+				// adding the keywords
+				ArrayList<String> keywords = qd.utility.MiscUtility.str2List(bestQuery);
 				for (int index = 1; index < keywords.size(); index++) {
 					String keyword = keywords.get(index);
 					double relevance = 1 - (double) index / keywords.size();
@@ -541,7 +550,6 @@ public class BugDoctorDashboardView extends ViewPart {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
-
 			}
 		});
 
@@ -653,10 +661,11 @@ public class BugDoctorDashboardView extends ViewPart {
 						String bugDoctorQuery = new String();
 
 						ArrayList<Result> suggestedKeywords = new ArrayList<Result>();
-						int startIndex = 0;
+						int startIndex = 1;
 
 						// concepts mode of BugDoctor
 						if (strictButton.getSelection() && strictButton.getEnabled()) {
+							qd.config.StaticData.HOME_DIR = store.get("HOME_DIR", "default_home");
 							strict.ca.usask.cs.srlab.strict.config.StaticData.STOPWORD_DIR = store.get("STOPWORD_DIR",
 									"default_stopword");
 							strict.ca.usask.cs.srlab.strict.config.StaticData.SAMURAI_DIR = store.get("SAMURAI_DIR",
@@ -666,7 +675,7 @@ public class BugDoctorDashboardView extends ViewPart {
 
 							SearchTermProvider stProvider = new SearchTermProvider(SELECTED_REPOSITORY, bugID, title,
 									bugReport);
-							String bestQuery = stProvider.deliverBestQuery(entCalc);
+							String bestQuery = stProvider.deliverBestQuery();
 							System.out.println(bestQuery);
 							bugDoctorQuery = bestQuery;
 						}
