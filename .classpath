@@ -37,5 +37,6 @@
 	<classpathentry kind="lib" path="bugdoctor.lib/ca.usask.cs.srlab.blizzard-qrmodule.jar"/>
 	<classpathentry kind="lib" path="bugdoctor.lib/commons-io-2.5.jar"/>
 	<classpathentry kind="lib" path="bugdoctor.lib/lucene-analyzers-common-6.2.0.jar"/>
+	<classpathentry kind="lib" path="bugdoctor.lib/ca.usask.cs.srlab.blader-qrmodule.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

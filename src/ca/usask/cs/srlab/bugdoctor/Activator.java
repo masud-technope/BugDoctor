@@ -73,14 +73,14 @@ public class Activator extends AbstractUIPlugin {
 		try {
 			IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 
-			store.put("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
+			store.put("HOME_DIR", "F:\\MyWorks\\Thesis Works\\PhDThesisTool");
 			String HOME_DIR = store.get("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
 
 			store.put("STOPWORD_DIR", HOME_DIR + "/pp-data");
 			store.put("SAMURAI_DIR", HOME_DIR + "/samurai-data");
 			store.put("MAX_ENT_MODEL_DIR", HOME_DIR + "/models");
-			store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
-			store.put("SELECTED_BUG", "5653");
+			store.put("SELECTED_REPOSITORY", "ecf");
+			store.put("SELECTED_BUG", "192756");
 			store.put("REPOSITORY_ROOT", "ssystems");
 			store.put("GROUND_TRUTH_DIR", HOME_DIR + "/goldset");
 			store.put("STACK_TRACE_DIR", HOME_DIR + "/stacktraces");

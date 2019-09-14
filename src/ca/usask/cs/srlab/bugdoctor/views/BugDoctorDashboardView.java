@@ -38,6 +38,7 @@ import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -66,6 +67,7 @@ import style.JavaLineStyler;
 import utility.ContentLoader;
 import utility.MiscUtility;
 import acer.coderank.query.expansion.CodeRankQueryExpansionProvider;
+import blader.deep.query.expansion.BLADERQueryProvider;
 import blizzard.bug.report.classification.BugReportClassifier;
 import blizzard.query.BLIZZARDQueryProvider;
 import bugdoctor.core.CodeMethod;
@@ -242,12 +244,41 @@ public class BugDoctorDashboardView extends ViewPart {
 		keywordlabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
 		keywordlabel.setLayoutData(gdata2);
 
-		Label projectlabel = new Label(composite, SWT.NONE);
+		// Label projectlabel = new Label(composite, SWT.NONE);
 		IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
-		projectlabel.setText(" " + store.get("SELECTED_REPOSITORY", "None"));
-		projectlabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
-		projectlabel.setForeground(new Color(null, 168, 64, 48));
-		projectlabel.setLayoutData(gdata3);
+		// projectlabel.setText(" " + store.get("SELECTED_REPOSITORY", "None"));
+
+		Combo projectCombo = new Combo(composite, SWT.DROP_DOWN);
+		String[] repos = { "ecf", "eclipse.jdt.core", "eclipse.jdt.debug", "eclipse.jdt.ui", "eclipse.pde.ui", "log4j",
+				"sling", "tomcat70" };
+		projectCombo.setItems(repos);
+		projectCombo.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
+		projectCombo.setForeground(new Color(null, 168, 64, 48));
+
+		projectCombo.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				int selectedIndex = projectCombo.getSelectionIndex();
+				if (selectedIndex >= 0) {
+					String selectedRepo = repos[selectedIndex];
+					store.put("SELECTED_REPOSITORY", selectedRepo);
+					System.out.println("Selected repo:"+selectedRepo);
+				}
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+			}
+		});
+
+		// projectCombo.setLayout(gdat);
+		// projectlabel.setFont(new Font(composite.getDisplay(), "Arial", 14,
+		// SWT.BOLD));
+		// projectlabel.setForeground(new Color(null, 168, 64, 48));
+		// projectlabel.setLayoutData(gdata3);
 
 		Label _bugIDlabel = new Label(composite, SWT.NONE);
 		_bugIDlabel.setText("ID#:");
@@ -448,7 +479,10 @@ public class BugDoctorDashboardView extends ViewPart {
 							IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 							int bugID = store.getInt("SELECTED_BUGID", 0);
 							String repository = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+							
 							String indexFolder = store.get("INDEX_DIR", "default_index");
+							
+							System.out.println("Searching for:"+repository+", Bug ID:"+bugID);
 
 							String searchQuery = input.getText();
 							LuceneSearcher searcher = new LuceneSearcher(bugID, repository, searchQuery, indexFolder);
@@ -508,8 +542,12 @@ public class BugDoctorDashboardView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
+
 				int bugID = store.getInt("SELECTED_BUGID", 0);
+				bugID = Integer.parseInt(bugIDLabel.getText());
+
 				String repoName = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+
 				qd.config.StaticData.HOME_DIR = StaticData.HOME_DIR;
 				String indexFolder = store.get("INDEX_DIR", "default_index");
 				String repoSourceFolder = store.get("REPOSITORY_SRC_DIRECTORY", "default_repo_src");
@@ -518,11 +556,15 @@ public class BugDoctorDashboardView extends ViewPart {
 				String bestQuery = new String();
 
 				if (acerButton.getSelection() && acerButton.getEnabled()) {
+
 					CodeRankQueryExpansionProvider crProvider = new CodeRankQueryExpansionProvider(repoName, bugID,
 							searchQuery, indexFolder, repoSourceFolder);
 					bestQuery = crProvider.getExtendedQuery(StaticData.BR_NL_QR_LEN);
 				} else if (bladerButton.getSelection() && bladerButton.getEnabled()) {
 					// getting the blader query
+					blader.config.StaticData.BLADER_EXP = store.get("HOME_DIR", "default_home");
+					BLADERQueryProvider bqProvider = new BLADERQueryProvider(repoName, bugID);
+					bestQuery = bqProvider.deliverBLADERQuery();
 				}
 
 				ArrayList<Result> extendedKeywords = new ArrayList<>();
