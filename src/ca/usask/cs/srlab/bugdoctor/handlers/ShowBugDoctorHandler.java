@@ -19,26 +19,6 @@ public class ShowBugDoctorHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// TODO Auto-generated method stub
 		try {
-			// code for showing SurfClipse View
-			IWorkbenchWindow window = PlatformUI.getWorkbench()
-					.getActiveWorkbenchWindow();
-			if (window != null) {
-				IStructuredSelection selection = (IStructuredSelection) window
-						.getActivePage().getSelection();
-				Object firstElement = selection.getFirstElement();
-				if (firstElement instanceof IAdaptable) {
-					IProject project = (IProject) ((IAdaptable) firstElement)
-							.getAdapter(IProject.class);
-					// IPath path = project.getFullPath();
-					// System.out.println(project.getName());
-					Activator.SELECTED_REPOSITORY = project.getName();
-					//System.out.println(Activator.SELECTED_REPOSITORY);
-					IEclipsePreferences store = InstanceScope.INSTANCE
-							.getNode("ca.usask.cs.srlab.bugdoctor");
-					store.put("SELECTED_REPOSITORY",
-							Activator.SELECTED_REPOSITORY);
-				}
-			}
 			
 			String REBviewID="ca.usask.cs.srlab.rack.views.RACKExampleView";
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(REBviewID);

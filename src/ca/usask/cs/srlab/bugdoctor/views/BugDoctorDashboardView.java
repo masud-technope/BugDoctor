@@ -63,7 +63,9 @@ import qd.core.QDModelLoader;
 import query.exec.lucene.LuceneSearcher;
 import query.exec.lucene.ResultFile;
 import strict.query.SearchTermProvider;
+import strict.text.normalizer.TextNormalizer;
 import style.JavaLineStyler;
+import utility.ConfigManager;
 import utility.ContentLoader;
 import utility.MiscUtility;
 import acer.coderank.query.expansion.CodeRankQueryExpansionProvider;
@@ -118,6 +120,7 @@ public class BugDoctorDashboardView extends ViewPart {
 	Button acerButton = null;
 	Button blizzardButton = null;
 	Button bladerButton = null;
+	Button baselineButton = null;
 
 	Button openButton = null;
 
@@ -141,59 +144,33 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void initializeHeavyItems() {
 		// initialize the heavy items
 		IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
-		String HOME_DIR = store.get("HOME_DIR", "default_home");
-		logger.info("HOME_DIR = " + HOME_DIR);
+		String HOME_DIR = store.get("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
 
-		String STOPWORD_DIR = store.get("STOPWORD_DIR", "default_stopword");
-		logger.info("STOPWORD_DIR = " + STOPWORD_DIR);
-
-		String SAMURAI_DIR = store.get("SAMURAI_DIR", "default_samurai");
-		logger.info("SAMURAI_DIR = " + SAMURAI_DIR);
-
-		String MAX_ENT_MODEL_DIR = store.get("MAX_ENT_MODEL_DIR", "default_model");
-		logger.info("MAX_ENT_MODEL_DIR = " + MAX_ENT_MODEL_DIR);
-
-		String SELECTED_REPOSITORY = store.get("SELECTED_REPOSITORY", "default_repo");
-		logger.info("SELECTED_REPOSITORY = " + SELECTED_REPOSITORY);
-
-		// setting up the home directory
+		// setting up the home directory for all modules
 		StaticData.HOME_DIR = HOME_DIR;
-		qd.config.StaticData.HOME_DIR = HOME_DIR;
-		query.exec.config.StaticData.HOME_DIR = HOME_DIR;
-		strict.ca.usask.cs.srlab.strict.config.StaticData.HOME_DIR = HOME_DIR;
-		blizzard.config.StaticData.HOME_DIR = HOME_DIR;
-		acer.ca.usask.cs.srlab.coderank.tool.config.StaticData.HOME_DIR = HOME_DIR;
+		ConfigManager.setHomeDir(HOME_DIR);
 
-		// load the entropy
-		String corpusDir = HOME_DIR + "/corpus/norm-class/" + SELECTED_REPOSITORY;
-		store.put("CORPUS_DIR", corpusDir);
-		logger.info("CORPUS_DIR = " + corpusDir);
+		// setting up other items
+		ConfigManager.setGlobalConfigs(HOME_DIR);
+	}
 
-		String repoSourceDir = HOME_DIR + "/corpus/class/" + SELECTED_REPOSITORY;
-		store.put("REPOSITORY_SRC_DIRECTORY", repoSourceDir);
-		logger.info("REPOSITORY_SRC_DIR = " + repoSourceDir);
-
-		String indexDir = HOME_DIR + "/lucene/index-class/" + SELECTED_REPOSITORY;
-		store.put("INDEX_DIR", indexDir);
-		logger.info("INDEX_DIR = " + indexDir);
+	protected void loadProjectSpecificItems(String repoName) {
+		IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
+		String HOME_DIR = store.get("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
+		ConfigManager.setRepoSpecificItems(HOME_DIR, repoName);
 
 		try {
-			// this.entCalc = new EntropyCalc(SELECTED_REPOSITORY, indexDir, corpusDir);
-			// loading the model
-			/*
-			 * if (QDModelLoader.rfModelMap.isEmpty()) { QDModelLoader.loadRFModels(); }
-			 */
-
 			// load class rank keys
 			if (keyFileMap.isEmpty()) {
-				String keyFile = query.exec.config.StaticData.HOME_DIR + "/corpus/" + SELECTED_REPOSITORY + ".ckeys";
+
+				String keyFile = query.exec.config.StaticData.HOME_DIR + "/corpus/" + repoName + ".ckeys";
 				query.exec.lucene.ClassResultRankMgr.loadKeys(keyFile);
 				this.keyFileMap = query.exec.lucene.ClassResultRankMgr.keyMap;
-			}
 
+				System.out.println("Loaded keymap:" + repoName + " with " + this.keyFileMap.size() + " entries!");
+			}
 		} catch (Exception exc) {
-			System.err.println("Failed to load EntropyCalc and QD models!");
-			logger.error("Failed to load the initial variables: " + exc.getMessage());
+			logger.error("Failed to load project specific items: " + exc.getMessage());
 		}
 	}
 
@@ -218,7 +195,7 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addBugReportMetaData(Composite parent) {
 		// adding bug report meta data
 		final Composite composite = new Composite(parent, SWT.NONE);
-		GridLayout brMetaDataGridLayout = makeGridLayout(7);
+		GridLayout brMetaDataGridLayout = makeGridLayout(8);
 		composite.setLayout(brMetaDataGridLayout);
 
 		GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, false);
@@ -256,15 +233,22 @@ public class BugDoctorDashboardView extends ViewPart {
 		projectCombo.setForeground(new Color(null, 168, 64, 48));
 
 		projectCombo.addSelectionListener(new SelectionListener() {
-
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				int selectedIndex = projectCombo.getSelectionIndex();
 				if (selectedIndex >= 0) {
+
 					String selectedRepo = repos[selectedIndex];
 					store.put("SELECTED_REPOSITORY", selectedRepo);
-					System.out.println("Selected repo:"+selectedRepo);
+					System.out.println("Selected repo:" + selectedRepo);
+
+					// clearing previous key map
+					keyFileMap.clear();
+
+					loadProjectSpecificItems(selectedRepo);
+					// showing the configuration
+					ConfigManager.showConfigs();
 				}
 			}
 
@@ -281,7 +265,7 @@ public class BugDoctorDashboardView extends ViewPart {
 		// projectlabel.setLayoutData(gdata3);
 
 		Label _bugIDlabel = new Label(composite, SWT.NONE);
-		_bugIDlabel.setText("ID#:");
+		_bugIDlabel.setText("    ID#:");
 		_bugIDlabel.setFont(new Font(composite.getDisplay(), "Arial", 14, SWT.BOLD));
 		_bugIDlabel.setLayoutData(gdata2);
 
@@ -306,16 +290,22 @@ public class BugDoctorDashboardView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
+
+				// storing on the pref
+				IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
+
 				// choose bug report
 				FileDialog fileDialog = new FileDialog(composite.getShell(), SWT.NONE);
+				String targetDir = store.get("HOME_DIR", "C:\\MyWorks\\PhDThesisTool") + "/bug-report/"
+						+ store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+				fileDialog.setFilterPath(targetDir);
 				final String fileName = fileDialog.open();
+				
 				// OPENED_BUG_REPORT = fileName;
 				File bugReportFile = new File(fileName);
 				String bugID = bugReportFile.getName().split("\\.")[0];
 				bugIDLabel.setText(bugID);
 
-				// storing on the pref
-				IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 				store.put("SELECTED_BUGID", bugID);
 
 				// System.out.println(fileName);
@@ -337,9 +327,7 @@ public class BugDoctorDashboardView extends ViewPart {
 
 				// loading the ground truth
 				String repoName = store.get("SELECTED_REPOSITORY", "default_repo");
-
 				int myBugID = Integer.parseInt(store.get("SELECTED_BUGID", "default_bug_id"));
-
 				loadGroundTruth(repoName, myBugID);
 
 			}
@@ -386,6 +374,9 @@ public class BugDoctorDashboardView extends ViewPart {
 			}
 		});
 
+		// adding the settings icon
+		addSettingsPanel(composite);
+
 	}
 
 	protected void loadGroundTruth(String repoName, int bugID) {
@@ -397,6 +388,9 @@ public class BugDoctorDashboardView extends ViewPart {
 			String gtruthDir = store.get("GROUND_TRUTH_DIR", "default_gtruth");
 			String goldsetFile = gtruthDir + "/" + repoName + "/gold/" + bugID + ".txt";
 			ArrayList<String> temp = ContentLoader.getAllLinesList(goldsetFile);
+			if (temp.isEmpty()) {
+				System.out.println("Failed to load the ground truth !");
+			}
 			for (String goldFile : temp) {
 				if (goldFile.endsWith(".java")) {
 					String tempFile = goldFile.replace('\\', '.');
@@ -406,6 +400,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			}
 		} catch (Exception exc) {
 			logger.error("Failed to load the ground truth !" + exc.getMessage());
+			System.out.println("Failed to load the ground truth !" + exc.getMessage());
 		}
 	}
 
@@ -421,6 +416,9 @@ public class BugDoctorDashboardView extends ViewPart {
 					found.add(index);
 					break;
 				}
+				/*
+				 * else if (mySrcPath.contains(mygFile + "#")) { found.add(index); break; }
+				 */
 			}
 			index++;
 		}
@@ -477,16 +475,25 @@ public class BugDoctorDashboardView extends ViewPart {
 						public void run() {
 
 							IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
-							int bugID = store.getInt("SELECTED_BUGID", 0);
-							String repository = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
-							
-							String indexFolder = store.get("INDEX_DIR", "default_index");
-							
-							System.out.println("Searching for:"+repository+", Bug ID:"+bugID);
+							String HOME_DIR = store.get("HOME_DIR", "C:\\MyWorks\\PhDThesisTool");
 
+							String repository = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+
+							loadProjectSpecificItems(repository);
+
+							// showing configurations
+							ConfigManager.showConfigs();
+
+							int bugID = store.getInt("SELECTED_BUGID", 0);
+
+							String indexFolder = store.get("INDEX_DIR", "default_index");
 							String searchQuery = input.getText();
+
+							System.out.println("Searching for:" + repository + ", Bug ID:" + bugID);
+
 							LuceneSearcher searcher = new LuceneSearcher(bugID, repository, searchQuery, indexFolder);
 							ArrayList<ResultFile> resultFiles = searcher.performVSMSearchListPlus(true);
+							System.out.println("Retrieved results:" + resultFiles.size());
 
 							ArrayList<Result> entities = new ArrayList<Result>();
 							for (int index = 1; index < resultFiles.size(); index++) {
@@ -496,6 +503,7 @@ public class BugDoctorDashboardView extends ViewPart {
 									try {
 										Result bentity = new Result();
 										bentity.token = rfile.filePath;
+										bentity.resultRank = index;
 										String fileName = new File(rfile.filePath).getName().trim();
 										if (keyFileMap.containsKey(fileName)) {
 											String srcFilePath = keyFileMap.get(fileName);
@@ -540,6 +548,10 @@ public class BugDoctorDashboardView extends ViewPart {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+
+				// showing configurations
+				ConfigManager.showConfigs();
+
 				// TODO Auto-generated method stub
 				IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 
@@ -548,21 +560,30 @@ public class BugDoctorDashboardView extends ViewPart {
 
 				String repoName = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 
+				loadProjectSpecificItems(repoName);
+
 				qd.config.StaticData.HOME_DIR = StaticData.HOME_DIR;
-				String indexFolder = store.get("INDEX_DIR", "default_index");
-				String repoSourceFolder = store.get("REPOSITORY_SRC_DIRECTORY", "default_repo_src");
 
 				String searchQuery = input.getText();
 				String bestQuery = new String();
 
 				if (acerButton.getSelection() && acerButton.getEnabled()) {
+					acer.ca.usask.cs.srlab.coderank.tool.config.StaticData.HOME_DIR = store.get("HOME_DIR",
+							"default_home");
+					qd.config.StaticData.HOME_DIR = store.get("HOME_DIR", "default_home");
+					String indexFolder = store.get("INDEX_DIR", "default_index");
+					String repoSourceFolder = store.get("REPOSITORY_SRC_DIR", "default_repo_src");
 
 					CodeRankQueryExpansionProvider crProvider = new CodeRankQueryExpansionProvider(repoName, bugID,
 							searchQuery, indexFolder, repoSourceFolder);
 					bestQuery = crProvider.getExtendedQuery(StaticData.BR_NL_QR_LEN);
+
 				} else if (bladerButton.getSelection() && bladerButton.getEnabled()) {
+
 					// getting the blader query
 					blader.config.StaticData.BLADER_EXP = store.get("HOME_DIR", "default_home");
+					qd.config.StaticData.HOME_DIR = store.get("HOME_DIR", "default_home");
+
 					BLADERQueryProvider bqProvider = new BLADERQueryProvider(repoName, bugID);
 					bestQuery = bqProvider.deliverBLADERQuery();
 				}
@@ -581,6 +602,7 @@ public class BugDoctorDashboardView extends ViewPart {
 					String keyword = keywords.get(index);
 					double relevance = 1 - (double) index / keywords.size();
 					Result rKeyword = new Result();
+					// rKeyword.resultRank = index;
 					rKeyword.token = keyword;
 					rKeyword.totalScore = relevance;
 					extendedKeywords.add(rKeyword);
@@ -629,6 +651,10 @@ public class BugDoctorDashboardView extends ViewPart {
 
 	protected Image get_search_image() {
 		return ImageDescriptor.createFromFile(ViewLabelProvider.class, "searchbt16.gif").createImage();
+	}
+
+	protected Image getSettingsImage() {
+		return ImageDescriptor.createFromFile(BugDoctorDashboardView.class, "settings.png").createImage();
 	}
 
 	protected Image getSuggestionImage() {
@@ -694,6 +720,9 @@ public class BugDoctorDashboardView extends ViewPart {
 					@Override
 					public void run() {
 
+						// showing configurations
+						ConfigManager.showConfigs();
+
 						IEclipsePreferences store = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.bugdoctor");
 						String SELECTED_REPOSITORY = store.get("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 						int bugID = Integer.parseInt(bugIDLabel.getText().trim());
@@ -701,12 +730,17 @@ public class BugDoctorDashboardView extends ViewPart {
 						String bugReport = bugReportViewer.getText();
 						String title = bugReport.split("\n")[0].trim();
 						String bugDoctorQuery = new String();
+						
+						//load project specific item
+						loadProjectSpecificItems(SELECTED_REPOSITORY);
+						
 
 						ArrayList<Result> suggestedKeywords = new ArrayList<Result>();
 						int startIndex = 1;
 
 						// concepts mode of BugDoctor
 						if (strictButton.getSelection() && strictButton.getEnabled()) {
+
 							qd.config.StaticData.HOME_DIR = store.get("HOME_DIR", "default_home");
 							strict.ca.usask.cs.srlab.strict.config.StaticData.STOPWORD_DIR = store.get("STOPWORD_DIR",
 									"default_stopword");
@@ -748,8 +782,6 @@ public class BugDoctorDashboardView extends ViewPart {
 									startIndex = reportClass.equals("ST") ? 0 : 1;
 								}
 							}
-
-						} else if (bladerButton.getSelection() && bladerButton.getEnabled()) {
 
 						} else {
 							MessageBox selectMethod = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ERROR);
@@ -892,12 +924,12 @@ public class BugDoctorDashboardView extends ViewPart {
 		}
 
 		viewer.setContentProvider(new ViewContentProvider());
-		viewer.setLabelProvider(new ViewLabelProvider());
+		viewer.setLabelProvider(new ViewLabelProviderKS());
 		viewer.setInput(getViewSite());
 
 		// adding the paint item
 		setItemHeight(table);
-		setPaintItem(table);
+		setPaintItemKS(table);
 		setKeyEventItems(table);
 	}
 
@@ -908,6 +940,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			this.viewer.setContentProvider(viewContentProvider);
 		} catch (Exception exc) {
 			// handle the exception
+			exc.printStackTrace();
 		}
 	}
 
@@ -920,6 +953,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			System.out.println(found);
 		} catch (Exception exc) {
 			// handle the exception
+			exc.printStackTrace();
 		}
 	}
 
@@ -939,8 +973,8 @@ public class BugDoctorDashboardView extends ViewPart {
 
 		// modify the table columns
 		TableColumn[] cols = resultViewer.getTable().getColumns();
-		cols[0].setText("Buggy Entity");
-		cols[1].setText("Suspiciousness");
+		cols[1].setText("Buggy Entity");
+		cols[2].setText("Suspiciousness");
 	}
 
 	protected void setupConceptLocalization() {
@@ -959,8 +993,8 @@ public class BugDoctorDashboardView extends ViewPart {
 
 		// modify the table columns
 		TableColumn[] cols = resultViewer.getTable().getColumns();
-		cols[0].setText("Code Entity");
-		cols[1].setText("Relevance");
+		cols[1].setText("Code Entity");
+		cols[2].setText("Relevance");
 	}
 
 	protected void addCommandPanel(SashForm divider) {
@@ -982,9 +1016,9 @@ public class BugDoctorDashboardView extends ViewPart {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
 
-		String[] columns = { "Code Entity", "Relevance" };
-		int[] colWidth = { 400, 100 };
-		int[] colAlignment = { SWT.LEFT, SWT.LEFT };
+		String[] columns = { "Rank", "Code Entity", "Relevance" };
+		int[] colWidth = { 40, 300, 100 };
+		int[] colAlignment = { SWT.LEFT, SWT.LEFT, SWT.LEFT };
 		for (int i = 0; i < columns.length; i++) {
 			// stored for sorting
 			// final int columnNum = i;
@@ -1162,7 +1196,7 @@ public class BugDoctorDashboardView extends ViewPart {
 			@Override
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
-				if (event.index == 0) {
+				if (event.index <= 1) {
 					// adding layout to code example title
 					int index = event.index;
 					TableItem item = (TableItem) event.item;
@@ -1174,7 +1208,7 @@ public class BugDoctorDashboardView extends ViewPart {
 					// adding the image
 					// item.setImage(getCodeResultImage());
 
-				} else if (event.index >= 1 && event.index <= 4) {
+				} else if (event.index >= 2 && event.index <= 4) {
 					GC gc = event.gc;
 					int index = event.index;
 					TableItem item = (TableItem) event.item;
@@ -1184,7 +1218,7 @@ public class BugDoctorDashboardView extends ViewPart {
 					// gc.setForeground(new Color(null, 11, 59, 23));
 					Color myforeground = new Color(null, 11, 97, 11);
 
-					if (index == 1) {
+					if (index == 2) {
 						myforeground = new Color(null, 244, 113, 66);
 					}
 
@@ -1214,12 +1248,13 @@ public class BugDoctorDashboardView extends ViewPart {
 		Color red = new Color(null, 255, 0, 0);
 		for (int index : buggyIndices) {
 			TableItem buggyRow = rows[index];
-			buggyRow.setBackground(0, red);
 			buggyRow.setBackground(1, red);
+			buggyRow.setBackground(2, red);
+			// buggyRow.setBackground(0, red);
 		}
 	}
 
-	protected void setPaintItem(Table table) {
+	protected void setPaintItemKS(Table table) {
 		// adding paint item
 		table.addListener(SWT.PaintItem, new Listener() {
 			@Override
@@ -1234,7 +1269,7 @@ public class BugDoctorDashboardView extends ViewPart {
 					textLayout.setStyle(textStyle, 0, title.length());
 					textLayout.draw(event.gc, event.x, event.y);
 
-				} else if (event.index >= 1 && event.index <= 4) {
+				} else if (event.index == 1) {
 					GC gc = event.gc;
 					int index = event.index;
 					TableItem item = (TableItem) event.item;
@@ -1244,9 +1279,58 @@ public class BugDoctorDashboardView extends ViewPart {
 					// gc.setForeground(new Color(null, 11, 59, 23));
 					Color myforeground = new Color(null, 11, 97, 11);
 
-					if (index == 1) {
+					gc.setForeground(myforeground);
+					gc.setBackground(new Color(null, 255, 255, 255));
+
+					int col2Width = 100;
+					int width = (col2Width - 1) * percent / 100;
+					int height = 25;
+					// gc.fillRectangle(event.x, event.y + 10, width,
+					// height);
+					gc.fillGradientRectangle(event.x, event.y, width, height, false);
+					Rectangle rect2 = new Rectangle(event.x, event.y, width - 1, height - 1);
+					gc.drawRectangle(rect2);
+					gc.setForeground(new Color(null, 255, 255, 255));
+					String text = percent + "%";
+					Point size = event.gc.textExtent(text);
+					int offset = Math.max(0, (height - size.y) / 2);
+					gc.drawText(text, event.x + 2, event.y + offset, true);
+					gc.setForeground(background);
+					gc.setBackground(foreground);
+				}
+			}
+		});
+	}
+
+	protected void setPaintItem(Table table) {
+		// adding paint item
+		table.addListener(SWT.PaintItem, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				if (event.index == 0 || event.index == 1) {
+					// adding layout to code example title
+					int index = event.index;
+					TableItem item = (TableItem) event.item;
+					String title = item.getText(index);
+					textLayout.setText(title);
+					textLayout.setStyle(textStyle, 0, title.length());
+					textLayout.draw(event.gc, event.x, event.y);
+
+				} else if (event.index >= 2 && event.index <= 4) {
+					GC gc = event.gc;
+					int index = event.index;
+					TableItem item = (TableItem) event.item;
+					int percent = (int) Double.parseDouble(item.getText(index));
+					Color foreground = gc.getForeground();
+					Color background = gc.getBackground();
+					// gc.setForeground(new Color(null, 11, 59, 23));
+					Color myforeground = new Color(null, 11, 97, 11);
+
+					if (index == 2) {
 						myforeground = new Color(null, 0, 64, 255);
 					}
+
 					if (index == 2) {
 						myforeground = new Color(null, 17, 122, 141);
 					}
@@ -1283,15 +1367,37 @@ public class BugDoctorDashboardView extends ViewPart {
 	protected void addUtilityLayer(Composite parent) {
 		// adding the utility layer
 		final Composite composite2 = new Composite(parent, SWT.NONE);
-		GridLayout gridLayout2 = makeGridLayout(6);
+		GridLayout gridLayout2 = makeGridLayout(7);
 		composite2.setLayout(gridLayout2);
 
 		GridData gridData2 = new GridData(SWT.CENTER, SWT.FILL, true, false);
 		composite2.setLayoutData(gridData2);
 
+		baselineButton = new Button(composite2, SWT.RADIO);
+		baselineButton.setText("Baseline");
+		baselineButton.setSelection(false);
+		baselineButton.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				if (baselineButton.getSelection()) {
+					// setting the baseline query
+					String reportText = bugReportViewer.getText();
+					String baselineQuery = new TextNormalizer(reportText).normalizeBaseline();
+					input.setText(baselineQuery);
+				}
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
 		strictButton = new Button(composite2, SWT.RADIO);
 		strictButton.setText("STRICT");
-		strictButton.setSelection(true);
+		strictButton.setSelection(false);
 
 		acerButton = new Button(composite2, SWT.RADIO);
 		acerButton.setText("ACER");
@@ -1321,6 +1427,14 @@ public class BugDoctorDashboardView extends ViewPart {
 						// codeViewer.setText("");
 						bugReportViewer.setText("");
 						resultViewer.setContentProvider(new ViewContentProvider());
+
+						// clearing the buttons
+						baselineButton.setSelection(false);
+						strictButton.setSelection(false);
+						acerButton.setSelection(false);
+						blizzardButton.setSelection(false);
+						bladerButton.setSelection(false);
+
 					} catch (Exception exc3) {
 						// handle the exception
 					}
@@ -1332,6 +1446,42 @@ public class BugDoctorDashboardView extends ViewPart {
 				// TODO Auto-generated method stub
 			}
 		});
+	}
+
+	protected void addSettingsPanel(Composite parent) {
+		final Composite composite = new Composite(parent, SWT.NONE);
+		GridLayout settingsDataGridLayout = makeGridLayout(1);
+		composite.setLayout(settingsDataGridLayout);
+
+		GridData gridData = new GridData(SWT.RIGHT, SWT.TOP, false, false);
+		gridData.heightHint = 35;
+		gridData.widthHint = 30;
+		gridData.horizontalAlignment = SWT.RIGHT;
+		gridData.verticalAlignment = SWT.TOP;
+		gridData.grabExcessHorizontalSpace = false;
+		composite.setLayoutData(gridData);
+
+		Button settingsButton = new Button(composite, SWT.PUSH);
+		settingsButton.setImage(getSettingsImage());
+		settingsButton.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				MessageBox selectMethod = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ICON_INFORMATION);
+				selectMethod.setText("BugDoctor Settings");
+				selectMethod.setMessage(ConfigManager.getToolConfigs());
+				int returnedCode = selectMethod.open();
+				System.out.println(returnedCode);
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
 	}
 
 	@Override
@@ -1347,6 +1497,8 @@ public class BugDoctorDashboardView extends ViewPart {
 		GridData gdata = new GridData(SWT.FILL, SWT.FILL, false, true);
 		parent.setLayoutData(gdata);
 
+		// addSettingsPanel(parent);
+
 		addBugReportMetaData(parent);
 		addSearchPanel(parent);
 		addUtilityLayer(parent);
@@ -1356,16 +1508,48 @@ public class BugDoctorDashboardView extends ViewPart {
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "ca.usask.cs.srlab.bugdoctor.viewer");
 	}
 
-	class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
+	class ViewLabelProviderKS extends LabelProvider implements ITableLabelProvider {
+
 		@Override
-		public String getColumnText(Object obj, int index) {
-			Result myresult = (Result) obj;
+		public Image getColumnImage(Object element, int columnIndex) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public String getColumnText(Object element, int index) {
+			// TODO Auto-generated method stub
+			Result myresult = (Result) element;
 			switch (index) {
 			case 0:
 				if (myresult.token != null)
 					return myresult.token;
 				return "";
 			case 1:
+				if (myresult.totalScore > 0)
+					return String.format("%.2f", myresult.totalScore * 100);
+				return "0";
+			default:
+				return "";
+			}
+		}
+	}
+
+	class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
+		@Override
+		public String getColumnText(Object obj, int index) {
+			Result myresult = (Result) obj;
+			switch (index) {
+			case 0:
+				if (myresult.resultRank >= 0) {
+					return Integer.toString(myresult.resultRank);
+				}
+				return "0";
+			case 1:
+				if (myresult.token != null)
+					return myresult.token;
+				return "";
+			case 2:
 				if (myresult.totalScore > 0)
 					return String.format("%.2f", myresult.totalScore * 100);
 				return "0";

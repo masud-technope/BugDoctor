@@ -18,7 +18,6 @@
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/stanford-postagger-3.9.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/weka.jar"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/xom.jar"/>
-	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/lucene-codecs-6.2.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/lucene-core-6.2.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/lucene-queries-6.2.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="bugdoctor.lib/lucene-queryparser-6.2.0.jar"/>

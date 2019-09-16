@@ -287,14 +287,15 @@ public class WorkbenchPreferencePage extends PreferencePage implements IWorkbenc
 					store.put("STOPWORD_DIR", HOME_DIR + "/pp-data");
 					store.put("SAMURAI_DIR", HOME_DIR + "/samurai-data");
 					store.put("MAX_ENT_MODEL_DIR", HOME_DIR + "/models");
-					store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
+					//store.put("SELECTED_REPOSITORY", "eclipse.jdt.debug");
 					store.put("GROUND_TRUTH_DIR", HOME_DIR + "/goldset");
+					store.put("STACK_TRACE_DIR", HOME_DIR + "/stacktraces");
+					store.put("REPOSITORY_SRC_DIR", HOME_DIR+"/corpus/class");
 					
-					
-					//adding the same items to RACK+NLP2API
+
+					// adding the same items to RACK+NLP2API
 					IEclipsePreferences storeGS = InstanceScope.INSTANCE.getNode("ca.usask.cs.srlab.rack");
 					storeGS.put("HOME_DIR", homeDirText.getText());
-					
 
 				} catch (Exception exc) {
 					System.err.println("HOME_DIR missing!");
