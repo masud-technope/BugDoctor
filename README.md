@@ -31,14 +31,13 @@ Please cite our work as
 	pages={226--229}
 }
 ```
-**Download this paper** [<img src="https://github.com/masud-technope/BugDoctor/blob/master/bugdoctor.png?raw=true"
+**Download this paper** [<img src="http://homepage.usask.ca/~masud.rahman/img/pdf.png"
      alt="PDF" heigh="16px" width="16px" />](http://homepage.usask.ca/~masud.rahman/papers/masud-ICSE2019-pp.pdf)
-
 
 
 **Bug Doctor Overview**
 
-[![Bug Doctor](https://github.com/masud-technope/BugDoctor/bugdoctor.png)](https://youtu.be/RPMBr0Ktxks)
+[![Bug Doctor](https://github.com/masud-technope/BugDoctor/blob/master/bugdoctor.png?raw=true)](https://youtu.be/RPMBr0Ktxks)
 
 
 
