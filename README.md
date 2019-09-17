@@ -35,6 +35,13 @@ Please cite our work as
      alt="PDF" heigh="16px" width="16px" />](http://homepage.usask.ca/~masud.rahman/papers/masud-ICSE2019-pp.pdf)
 
 
+
+**Bug Doctor Overview**
+
+[![Bug Doctor](https://github.com/masud-technope/BugDoctor/bugdoctor.png)](https://youtu.be/RPMBr0Ktxks)
+
+
+
 Something not working as expected?
 ------------------------------------------------------------------------
 Contact: **Masud Rahman** (masud.rahman@usask.ca)
