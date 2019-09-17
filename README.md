@@ -31,7 +31,7 @@ Please cite our work as
 	pages={226--229}
 }
 ```
-**Download this paper** [<img src="http://homepage.usask.ca/~masud.rahman/img/pdf.png"
+**Download this paper** [<img src="https://github.com/masud-technope/BugDoctor/blob/master/bugdoctor.png?raw=true"
      alt="PDF" heigh="16px" width="16px" />](http://homepage.usask.ca/~masud.rahman/papers/masud-ICSE2019-pp.pdf)
 
 
