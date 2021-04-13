@@ -31,8 +31,8 @@ Please cite our work as
 	pages={226--229}
 }
 ```
-**Download this paper** [<img src="http://homepage.usask.ca/~masud.rahman/img/pdf.png"
-     alt="PDF" heigh="16px" width="16px" />](http://homepage.usask.ca/~masud.rahman/papers/masud-ICSE2019-pp.pdf)
+**Download this paper** [<img src="https://web.cs.dal.ca/~masud/img/pdf.png"
+     alt="PDF" heigh="16px" width="16px" />](https://web.cs.dal.ca/~masud/papers/masud-ICSE2019-pp.pdf)
 
 
 **Bug Doctor Overview**
